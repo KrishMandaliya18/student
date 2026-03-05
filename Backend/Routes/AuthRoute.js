@@ -17,7 +17,7 @@ const { protect, isAdmin } = require('../Middleware/auth');
 router.post('/signup', signup);
 router.post('/login', login);
 
-// --- PROTECTED ROUTES (Student aur Admin dono ke liye) ---
+// --- PROTECTED ROUTES ( Admin dono ke liye) ---
 router.get('/profile', protect, getUserProfile);
 router.put('/profile/update', protect, updateUserProfile);
 

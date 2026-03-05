@@ -5,6 +5,8 @@ import {
   Users, Plus, Search, Trash2, Edit2, Mail, X, UserPlus, ShieldCheck, Key
 } from 'lucide-react';
 import axios from 'axios';
+import { toast,ToastContainer } from 'react-toastify'; // Ye line top par add karein
+
 
 const MyClasses = () => {
   const [students, setStudents] = useState([]);
@@ -52,7 +54,7 @@ const MyClasses = () => {
         _id: student._id, 
         name: student.name, 
         email: student.email, 
-        password:student.password , // Security ke liye password khali rakhein edit ke waqt
+        password:'' , // Security ke liye password khali rakhein edit ke waqt
         universityId: student.universityId 
       });
     } else {
@@ -62,84 +64,158 @@ const MyClasses = () => {
   };
 
 
-  const handleSave = async (e) => {
-  e.preventDefault();
-const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
-const userId = formData._id || userInfo.id;
-  try {
-    const config = { headers: { Authorization: `Bearer ${token}` } };
+//   const handleSave = async (e) => {
+//   e.preventDefault();
+// const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+// const userId = formData._id || userInfo.id;
+//   try {
+//     const config = { headers: { Authorization: `Bearer ${token}` } };
     
-    // UPDATE LOGIC
-    if (formData._id) {
-      await axios.put(`http://localhost:3000/api/auth/update-student/${formData._id}`, {
-        name: formData.name,
-        universityId: formData.universityId,
-        email: formData.email,
-        // Agar password box khali hai, toh null/empty bhejein
-        password: formData.password || "" 
-      }, config);
+//     // UPDATE LOGIC
+//     if (formData._id) {
+//       await axios.put(`http://localhost:3000/api/auth/update-student/${formData._id}`, {
+//         name: formData.name,
+//         universityId: formData.universityId,
+//         email: formData.email,
+//         // Agar password box khali hai, toh null/empty bhejein
+//         password: formData.password || "" 
+//       }, config);
       
-      alert("Updated successfully! Ab naye ID/Password se login ho jayega.");
-    }  else {
-        // --- ADD NEW (Signup) LOGIC ---
-        const signupData = {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: 'student',
-          enrollmentNumber: formData.universityId // Backend field name mapping
-        };
-    // ... baki code (Signup/Add)
+//       alert("Updated successfully! Ab naye ID/Password se login ho jayega.");
+//     }  else {
+//         // --- ADD NEW (Signup) LOGIC ---
+//         const signupData = {
+//           name: formData.name,
+//           email: formData.email,
+//           password: formData.password,
+//           role: 'student',
+//           enrollmentNumber: formData.universityId // Backend field name mapping
+//         };
+//     // ... baki code (Signup/Add)
       
-     await axios.post('http://localhost:3000/api/auth/signup', signupData);
-        alert("New student enrolled!");
-      }
-    fetchStudents();
-    setShowModal(false);
-  } catch (err) {
-    alert(err.response?.data?.message || "Update fail ho gaya");
-  }
-};
+//      await axios.post('http://localhost:3000/api/auth/signup', signupData);
+//         alert("New student enrolled!");
+//       }
+//     fetchStudents();
+//     setShowModal(false);
+//   } catch (err) {
+//     alert(err.response?.data?.message || "Update fail ho gaya");
+//   }
+// };
  
 
-
-const deleteStudent = async (id) => {
-  try {
-    // 1. Storage se data nikaalein (Check if it's localStorage or sessionStorage)
-    const storedData = sessionStorage.getItem("userInfo") || localStorage.getItem("userInfo");
+const handleSave = async (e) => {
+    e.preventDefault();
     
-    if (!storedData) {
-      alert("Session expired. Please login again.");
-      return;
-    }
-
-    const userInfo = JSON.parse(storedData);
-    const token = userInfo?.token; // Check karein ki login response mein 'token' hi key thi
+    const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+    const token = userInfo?.token;
 
     if (!token) {
-      console.log("UserInfo structure:", userInfo); // Debugging ke liye
-      alert("Token not found. Please login again.");
-      return;
+        toast.error("Session expired, please login again.");
+        return;
     }
 
-    // 2. API Call
-    await axios.delete(
-      `http://localhost:3000/api/auth/delete-student/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
+    // Client-side Validation (Server par jane se pehle check)
+    if (formData.password && formData.password.length < 6) {
+        return toast.warn("Password 6 characters se bada hona chahiye!");
+    }
 
-    // 3. Update UI
+    try {
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        
+        if (formData._id) {
+            // UPDATE LOGIC
+            await axios.put(`http://localhost:3000/api/auth/update-student/${formData._id}`, {
+                name: formData.name,
+                universityId: formData.universityId,
+                email: formData.email,
+                password: formData.password.trim() === "" ? null : formData.password 
+            }, config);
+            
+            toast.success("Student Data Updated Successfully!");
+        } else {
+            // ADD NEW LOGIC
+            const signupData = {
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                role: 'student',
+                enrollmentNumber: formData.universityId
+            };
+            await axios.post('http://localhost:3000/api/auth/signup', signupData, config);
+            toast.success("New student enrolled!");
+        }
+
+        fetchStudents();
+        setShowModal(false);
+    } catch (err) {
+        // Backend se jo message humne bheja tha (Duplicate ID etc.) wo yahan dikhega
+        const errorMsg = err.response?.data?.message || "Operation fail ho gaya";
+        toast.error(errorMsg);
+    }
+};
+
+// const deleteStudent = async (id) => {
+//   try {
+//     // 1. Storage se data nikaalein (Check if it's localStorage or sessionStorage)
+//     const storedData = sessionStorage.getItem("userInfo") || localStorage.getItem("userInfo");
+    
+//     if (!storedData) {
+//       alert("Session expired. Please login again.");
+//       return;
+//     }
+
+//     const userInfo = JSON.parse(storedData);
+//     const token = userInfo?.token; // Check karein ki login response mein 'token' hi key thi
+
+//     if (!token) {
+//       console.log("UserInfo structure:", userInfo); // Debugging ke liye
+//       alert("Token not found. Please login again.");
+//       return;
+//     }
+
+//     // 2. API Call
+//     await axios.delete(
+//       `http://localhost:3000/api/auth/delete-student/${id}`,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${token}`
+//         }
+//       }
+//     );
+
+//     // 3. Update UI
+//     setStudents((prev) => prev.filter((student) => student._id !== id));
+//     alert("Student Deleted Successfully");
+
+//   } catch (error) {
+//     console.error("Delete Error:", error.response?.data || error.message);
+//     const errorMsg = error.response?.data?.message || "Delete Failed";
+//     alert(errorMsg);
+//   }
+// };
+
+const deleteStudent = async (id) => {
+  // Confirmation box taaki galti se delete na ho jaye
+  if (!window.confirm("ARE YOU SURE? Ye student permanently delete ho jayega aur wapas nahi aayega!")) {
+    return;
+  }
+
+  try {
+    const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
+    const token = userInfo?.token;
+
+    await axios.delete(`http://localhost:3000/api/auth/delete-student/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    // Database se delete hone ke baad UI se bhi hatana zaroori hai
     setStudents((prev) => prev.filter((student) => student._id !== id));
-    alert("Student Deleted Successfully");
+    
+    alert("STUDENT ERASED FROM DATABASE");
 
   } catch (error) {
-    console.error("Delete Error:", error.response?.data || error.message);
-    const errorMsg = error.response?.data?.message || "Delete Failed";
-    alert(errorMsg);
+    alert(error.response?.data?.message || "Delete failed");
   }
 };
   const filteredStudents = students.filter(s => 
@@ -149,7 +225,8 @@ const deleteStudent = async (id) => {
 
   return (
     <div className="p-4 md:p-10 bg-[#0a0c10] text-white min-h-screen font-sans">
-      
+          <ToastContainer position="top-right" autoClose={3000} />
+
       {/* --- TOP BAR --- */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
         <div>

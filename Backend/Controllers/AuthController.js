@@ -3,45 +3,118 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 
+// exports.signup = async (req, res) => {
+//     try {
+//         const { name, email, password, role, enrollmentNumber, secretKey } = req.body;
+
+//         let user = await User.findOne({ email });
+//         if (user) return res.status(400).json({ msg: "User already exists" });
+
+//         let universityId ; 
+//         if (role === 'admin') {
+//             if (secretKey !== process.env.ADMIN_SECRET) {
+//                 return res.status(403).json({ msg: "Invalid Secret Key for Admin" });
+//             }
+//             universityId = `ADM-${Math.floor(1000 + Math.random() * 9000)}`;
+//         }
+
+//         const salt = await bcrypt.genSalt(10);
+//         const hashedPassword = await bcrypt.hash(password, salt);
+
+//         user = new User({
+//             name,
+//             email,
+//             password:hashedPassword,
+//             role,
+//             universityId
+//         });
+
+//         await user.save();
+
+//         // --- TOKEN GENERATION ADDED ---
+//         const token = jwt.sign(
+//             { id: user._id, role: user.role },
+//             process.env.JWT_SECRET || 'secret',
+//             { expiresIn: '7d' }
+//         );
+
+//         // Response mein token aur user object bhejein
+//         res.status(201).json({ 
+//             msg: "User registered successfully", 
+//             // universityId,
+//             token,
+//             user: {
+//                 id: user._id,
+//                 name: user.name,
+//                 role: user.role,
+//                 email: user.email,
+//                 universityId: user.universityId
+//             }
+//         });
+
+//     } catch (err) {
+//         res.status(500).send("Server Error: " + err.message);
+//     }
+// };
+
+
+
 exports.signup = async (req, res) => {
     try {
         const { name, email, password, role, enrollmentNumber, secretKey } = req.body;
 
+        // 1. Check if user already exists
         let user = await User.findOne({ email });
         if (user) return res.status(400).json({ msg: "User already exists" });
 
-        let universityId = enrollmentNumber; 
+        let universityId;
+
+        // 2. Role-based Logic
         if (role === 'admin') {
+            // Admin validation
             if (secretKey !== process.env.ADMIN_SECRET) {
                 return res.status(403).json({ msg: "Invalid Secret Key for Admin" });
             }
+            // Auto-generate Admin ID
             universityId = `ADM-${Math.floor(1000 + Math.random() * 9000)}`;
+        } else {
+            // Student validation: Enrollment Number must be present
+            if (!enrollmentNumber || enrollmentNumber.trim() === "") {
+                return res.status(400).json({ msg: "Enrollment Number is required for Students" });
+            }
+            universityId = enrollmentNumber;
         }
 
+        // 3. Double check for unique universityId in DB
+        const existingId = await User.findOne({ universityId });
+        if (existingId) {
+            return res.status(400).json({ msg: "This Enrollment Number is already registered" });
+        }
+
+        // 4. Hash Password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        // 5. Save User
         user = new User({
             name,
             email,
-            password:hashedPassword,
+            password: hashedPassword,
             role,
             universityId
         });
 
         await user.save();
 
-        // --- TOKEN GENERATION ADDED ---
+        // 6. Token Generation
         const token = jwt.sign(
             { id: user._id, role: user.role },
             process.env.JWT_SECRET || 'secret',
             { expiresIn: '7d' }
         );
 
-        // Response mein token aur user object bhejein
         res.status(201).json({ 
             msg: "User registered successfully", 
-            // universityId,
             token,
             user: {
                 id: user._id,
@@ -53,6 +126,7 @@ exports.signup = async (req, res) => {
         });
 
     } catch (err) {
+        console.error("Signup Error:", err.message);
         res.status(500).send("Server Error: " + err.message);
     }
 };
@@ -168,57 +242,96 @@ exports.updateUserProfile = async (req, res) => {
 // ==========================================
 exports.getAllStudents = async (req, res) => {
     try {
-        const students = await User.find({ role: 'student' }).select('-password'); 
+        const students = await User.find({ role: 'student' }).select('-password');
         res.status(200).json({ success: true, data: students });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Data fetch nahi ho paya", error: error.message });
+        res.status(500).json({ success: false, message: "Data fetch fail", error: error.message });
     }
-}; 
-
+};
 
 
 exports.updateStudentByAdmin = async (req, res) => {
-  try {
-    const { name, universityId, email, password } = req.body;
-    const student = await User.findById(req.params.id);
+    try {
+        const { name, email, universityId, password } = req.body;
 
-    if (!student) {
-      return res.status(404).json({ message: 'Student nahi mila' });
+        // 1. Password Length Validation (Min 6 digits)
+        if (password && password.trim() !== "" && password.length < 6) {
+            return res.status(400).json({ message: "Password kam se kam 6 characters ka hona chahiye!" });
+        }
+
+        // 2. Duplicate University ID Check
+        if (universityId) {
+            const existingStudent = await User.findOne({ universityId });
+            // Agar ID mil gayi aur wo us student ki nahi hai jise hum update kar rahe hain
+            if (existingStudent && existingStudent._id.toString() !== req.params.id) {
+                return res.status(400).json({ message: "Ye University ID pehle se kisi aur student ko assigned hai!" });
+            }
+        }
+
+        const user = await User.findById(req.params.id);
+
+        if (user) {
+            user.name = name || user.name;
+            user.email = email || user.email;
+            user.universityId = universityId || user.universityId;
+
+            if (password && password.trim() !== "") {
+                const salt = await bcrypt.genSalt(10);
+                user.password = await bcrypt.hash(password, salt);
+            }
+
+            await user.save();
+            res.json({ message: "Student updated successfully!" });
+        } else {
+            res.status(404).json({ message: 'Student nahi mila' });
+        }
+    } catch (error) {
+        // Agar database level par koi unique constraint fail hota hai toh uska error handling
+        if (error.code === 11000) {
+            return res.status(400).json({ message: "Duplicate data: Ye ID ya Email pehle se exist karta hai!" });
+        }
+        res.status(500).json({ message: 'Update fail', error: error.message });
     }
-
-    student.name = name || student.name;
-    student.universityId = universityId || student.universityId;
-    student.email = email || student.email;
-    
-    // Agar password naya aaya hai, toh use hash karke save karein
-    if (password && password.trim() !== "") {
-      const salt = await bcrypt.genSalt(10);
-      student.password = await bcrypt.hash(password, salt);
-    }
-
-    const updatedStudent = await student.save();
-    res.json({ success: true, data: updatedStudent });
-
-  } catch (error) {
-    console.error("Update Error:", error); // Terminal mein error dekhne ke liye
-    res.status(500).json({ message: error.message });
-  }
 };
+
 
 
 exports.deleteStudentByAdmin = async (req, res) => {
   try {
-    const student = await User.findById(req.params.id);
-    if (student) {
-      await student.deleteOne();
-      res.json({ message: 'Student removed successfully' });
-    } else {
-      res.status(404).json({ message: 'Student not found' });
+    const studentId = req.params.id;
+
+    // 1. Check karein ki student exist karta hai
+    const student = await User.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
     }
+
+    // 2. AGAR DUSRE COLLECTIONS HAIN (Optional Logic)
+    // await Marks.deleteMany({ studentId: studentId });
+    // await Attendance.deleteMany({ studentId: studentId });
+
+    // 3. Database se permanently remove karein
+    await User.findByIdAndDelete(studentId);
+
+    res.json({ success: true, message: 'Student permanently removed from the system' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server Error: " + error.message });
   }
 };
+
+// exports.deleteStudentByAdmin = async (req, res) => {
+//   try {
+//     const student = await User.findById(req.params.id);
+//     if (student) {
+//       await student.deleteOne();
+//       res.json({ message: 'Student removed successfully' });
+//     } else {
+//       res.status(404).json({ message: 'Student not found' });
+//     }
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 exports.logout = async (req, res) => {
     try {
         // Frontend se user ID milni chahiye (Middleware se ya body se)
