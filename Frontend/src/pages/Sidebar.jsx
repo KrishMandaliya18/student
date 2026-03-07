@@ -36,7 +36,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { path: 'assignments', label: 'Assignments', icon: <ClipboardList size={20}/> },
     { path: 'attendance', label: 'Attendance', icon: <CheckCircle size={20}/> },
     { path: 'exams', label: 'Exams', icon: <FileText size={20}/> },
-    { path: 'fees', label: 'Fees', icon: <CreditCard size={20}/> },
+    // { path: 'fees', label: 'Fees', icon: <CreditCard size={20}/> },
     { path: 'notice', label: 'Notice Board', icon: <Megaphone size={20}/> },
     { path: 'settings', label: 'Settings', icon: <Settings size={20}/> },
   ];

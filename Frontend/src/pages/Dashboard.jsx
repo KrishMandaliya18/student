@@ -55,7 +55,7 @@ const Dashboard = () => {
       </div>
 
       {/* Bottom Section: Activity Heatmap */}
-      <div className="grid grid-cols-1 gap-8">
+      {/* <div className="grid grid-cols-1 gap-8">
         <div className="main-card bg-[#0f172a]/60 backdrop-blur-xl p-8 rounded-[2rem] border border-white/5">
           <div className="flex items-center gap-2 mb-8 px-2">
             <Zap size={20} className="text-yellow-500" />
@@ -84,7 +84,7 @@ const Dashboard = () => {
             <span>High Activity</span>
           </div>
         </div>
-      </div>
+      </div> */}
 
     </div>
   );

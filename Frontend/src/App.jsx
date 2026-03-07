@@ -10,7 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Assignments from "./pages/Assignments";
 import Attendance from "./pages/Attendance";
 import Exams from "./pages/Exams";
-import Fees from "./pages/Fees";
+// import Fees from "./pages/Fees";
 import NoticeBoard from "./pages/NoticeBoard";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
@@ -61,7 +61,7 @@ function App() {
         <Route path="assignments" element={<Assignments />} />
         <Route path="attendance" element={<Attendance />} />
         <Route path="exams" element={<Exams />} />
-        <Route path="fees" element={<Fees />} />
+        {/* <Route path="fees" element={<Fees />} /> */}
         <Route path="notice" element={<NoticeBoard />} />
         <Route path="settings" element={<Settings />} />
         <Route path="profile" element={<Profile />} />

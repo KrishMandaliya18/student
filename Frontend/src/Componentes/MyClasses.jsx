@@ -1,13 +1,15 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { 
   Users, Plus, Search, Trash2, Edit2, Mail, X, UserPlus, ShieldCheck, Key
 } from 'lucide-react';
 import axios from 'axios';
 import { toast,ToastContainer } from 'react-toastify'; // Ye line top par add karein
+import { io } from 'socket.io-client';
 
-
+// Backend URL define karein
+const SOCKET_URL = "http://localhost:3000"; 
+const socket = io(SOCKET_URL);
 const MyClasses = () => {
   const [students, setStudents] = useState([]);
   const [formData, setFormData] = useState({ _id: null, name: '', email: '', password: '', universityId: '' });
@@ -46,8 +48,20 @@ const MyClasses = () => {
 };
   useEffect(() => {
     fetchStudents();
+    // Socket Listener: Jab bhi koi status change ho
+    socket.on('statusChanged', (data) => {
+      setStudents((prevStudents) => 
+        prevStudents.map((s) => 
+          s._id === data.userId ? { ...s, isLoggedIn: data.isLoggedIn } : s
+        )
+      );
+    });
+
+    return () => socket.off('statusChanged');
+  
   }, []);
 
+  
   const handleOpenModal = (student = null) => {
     if (student) {
       setFormData({ 
@@ -223,6 +237,8 @@ const deleteStudent = async (id) => {
     s.universityId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+
+  
   return (
     <div className="p-4 md:p-10 bg-[#0a0c10] text-white min-h-screen font-sans">
           {/* <ToastContainer position="top-right" autoClose={3000} /> */}
@@ -276,9 +292,22 @@ const deleteStudent = async (id) => {
                   <div className="font-bold text-slate-200">{s.name}</div>
                   <div className="text-slate-500 text-xs flex items-center gap-1 mt-1"><Mail size={12}/> {s.email}</div>
                 </td>
-                <td className="px-8 py-6">
+                {/* <td className="px-8 py-6">
                   <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full border border-emerald-500/20">Active Student</span>
-                </td>
+                </td> */}
+                <td className="px-8 py-6">
+  {s.isLoggedIn ? (
+    // Agar login hai (Active)
+    <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full border border-emerald-500/20">
+      Active Student
+    </span>
+  ) : (
+    // Agar login nahi hai (Inactive)
+    <span className="text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 px-3 py-1 rounded-full border border-red-500/20">
+      Inactive
+    </span>
+  )}
+</td>
                 <td className="px-8 py-6">
                   <div className="flex justify-center gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => handleOpenModal(s)} className="p-2 hover:text-emerald-400 transition-colors"><Edit2 size={18}/></button>

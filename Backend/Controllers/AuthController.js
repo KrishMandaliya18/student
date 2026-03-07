@@ -173,6 +173,7 @@ if (diffInMinutes < 15) {
 user.isLoggedIn = true;
 user.lastActiveAt = new Date();
         await user.save();
+        global.io.emit('statusChanged', { userId: user._id, isLoggedIn: true });
 
         // Step 5: JWT Token generate karein
         const token = jwt.sign(
@@ -371,8 +372,10 @@ exports.logout = async (req, res) => {
         const userId = req.user.id; // Yeh middleware se aayega (JWT verify hone ke baad)
         await User.findByIdAndUpdate(userId, { 
             isLoggedIn: false,
-            lastActiveAt: new Date() 
+            lastActiveAt: new Date()
+             
         });
+        global.io.emit('statusChanged', { userId: userId, isLoggedIn: false });
         res.json({ msg: "Logged out successfully" });
     } catch (err) {
         console.error(err.message);
