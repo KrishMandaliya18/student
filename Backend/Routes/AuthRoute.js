@@ -3,6 +3,9 @@ const router = express.Router();
 const { 
     signup, 
     login, 
+    logout, 
+    forceLogout, // Force logout controller
+    logoutOnClose,
     getAllStudents, 
     updateStudentByAdmin, 
     deleteStudentByAdmin, 
@@ -16,7 +19,9 @@ const { protect, isAdmin } = require('../Middleware/auth');
 // --- PUBLIC ROUTES ---
 router.post('/signup', signup);
 router.post('/login', login);
-
+router.post('/logout', protect, logout);
+router.post('/force-logout', forceLogout); // Force logout route
+router.post('/logout-on-close', logoutOnClose); // Tab close logout route
 // --- PROTECTED ROUTES ( Admin dono ke liye) ---
 router.get('/profile', protect, getUserProfile);
 router.put('/profile/update', protect, updateUserProfile);

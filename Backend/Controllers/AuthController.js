@@ -146,6 +146,20 @@ exports.login = async (req, res) => {
             return res.status(400).json({ msg: "Invalid Credentials or Role" });
         }
 
+
+//         if (user.isLoggedIn === true) {
+//     return res.status(400).json({ msg: "User already logged in on another device/tab." });
+// }
+
+if (user.isLoggedIn) {
+            const now = new Date();
+            const lastActive = new Date(user.lastActiveAt);
+            const diffInMinutes = (now - lastActive) / 60000;
+
+if (diffInMinutes < 15) {
+                return res.status(400).json({ msg: "User already logged in on another device/tab." });
+            }
+        }
         // Step 3: Password compare karein (Bcrypt use karke)
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
@@ -153,7 +167,11 @@ exports.login = async (req, res) => {
         }
 
         // Step 4: Login status update karein
-        user.isLoggedIn = true;
+        // Step 4: Login status check aur update
+
+
+user.isLoggedIn = true;
+user.lastActiveAt = new Date();
         await user.save();
 
         // Step 5: JWT Token generate karein
@@ -179,6 +197,22 @@ exports.login = async (req, res) => {
     }
 };
 
+
+exports.heartbeat = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        if (!userId) return res.status(400).send("User ID required");
+
+        // Sirf lastActiveAt update karein, baaki kuch nahi
+        await User.findByIdAndUpdate(userId, { 
+            lastActiveAt: new Date() 
+        });
+
+        res.status(200).json({ status: "alive" });
+    } catch (err) {
+        res.status(500).send("Heartbeat error");
+    }
+};
 // ==========================================
 // 3. GET Profile (Settings page data fetch karne ke liye)
 // ==========================================
@@ -334,13 +368,41 @@ exports.deleteStudentByAdmin = async (req, res) => {
 // };
 exports.logout = async (req, res) => {
     try {
-        // Frontend se user ID milni chahiye (Middleware se ya body se)
-        const user = await User.findById(req.user.id); 
-        if (user) {
-            user.isLoggedIn = false;
-            await user.save();
-        }
+        const userId = req.user.id; // Yeh middleware se aayega (JWT verify hone ke baad)
+        await User.findByIdAndUpdate(userId, { 
+            isLoggedIn: false,
+            lastActiveAt: new Date() 
+        });
         res.json({ msg: "Logged out successfully" });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+    }
+};
+
+exports.logoutOnClose = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (email) {
+            // Database mein user ka status update karein
+            await User.findOneAndUpdate(
+                { email: email }, 
+                { isLoggedIn: false, lastActiveAt: new Date() }
+            );
+        }
+        res.status(200).send("Status updated");
+    } catch (err) {
+        console.error("Tab close logout error:", err);
+        res.status(500).send("Error");
+    }
+};
+exports.forceLogout = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        if (userId) {
+            await User.findByIdAndUpdate(userId, { isLoggedIn: false });
+        }
+        res.json({ msg: "Status Reset" });
     } catch (err) {
         res.status(500).send("Server Error");
     }

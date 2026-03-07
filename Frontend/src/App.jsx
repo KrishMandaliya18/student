@@ -27,33 +27,26 @@ import FacultyAttendance from "./Componentes/FacultyAttendance"; // Faculty Atte
 
 function App() {
 
-  useEffect(() => {
-  const handleTabClose = (event) => {
-    // Check karein ki kya ye refresh hai
-    // navigation.type === 1 ka matlab hai 'Reload/Refresh'
-    const isRefresh = (
-      window.performance.getEntriesByType("navigation")[0].type === "reload"
-    );
+ useEffect(() => {
+  const handleTabClose = () => {
+    const storedInfo = sessionStorage.getItem("userInfo");
+    if (storedInfo) {
+      const userData = JSON.parse(storedInfo);
+      const url = "http://localhost:3000/api/auth/force-logout";
+      
 
-    if (!isRefresh) {
-      // Agar refresh NAHI hai, tabhi logout signal bhejein
-      const storedInfo = sessionStorage.getItem("userInfo");
-      if (storedInfo) {
-        const userData = JSON.parse(storedInfo);
-        const url = "http://localhost:3000/api/auth/logout";
-        const data = JSON.stringify({ userId: userData.id });
-        const blob = new Blob([data], { type: 'application/json' });
-        
-        navigator.sendBeacon(url, blob);
-      }
+      const heartbeat = setInterval(() => {
+        axios.post("http://localhost:3000/api/auth/heartbeat", { userId: userInfo.id })
+             .catch(e => console.log("Heartbeat failed"));
+    }, 300000);
+      // Ye method browser close hote waqt bhi request bhej deta hai
+      const blob = new Blob([JSON.stringify({ userId: userData.id })], { type: 'application/json' });
+      navigator.sendBeacon(url, blob);
     }
   };
 
-  window.addEventListener("beforeunload", handleTabClose);
-
-  return () => {
-    window.removeEventListener("beforeunload", handleTabClose);
-  };
+  window.addEventListener('beforeunload', handleTabClose);
+  return () => window.removeEventListener('beforeunload', handleTabClose);
 }, []);
   return (
     <Routes>

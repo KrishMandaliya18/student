@@ -30,18 +30,24 @@ useEffect(() => {
   window.addEventListener('profileUpdated', loadUserData);
 
   // Dropdown close logic
-  const handleClickOutside = (event) => {
-    if (menuRef.current && !menuRef.current.contains(event.target)) {
-      setShowProfileMenu(false);
-    }
-  };
-  document.addEventListener('mousedown', handleClickOutside);
-
-  return () => {
-    window.removeEventListener('profileUpdated', loadUserData);
-    document.removeEventListener('mousedown', handleClickOutside);
-  };
-}, []);
+  const handleTabClose = () => {
+         // Aapke backend ka URL
+         const url = "http://localhost:5000/api/auth/logout-on-close"; 
+         
+         // User ki pehchan ke liye email ya ID bhejein
+         const data = JSON.stringify({ email: user.email }); 
+         
+         // Beacon API ensure karta hai ki request successfully chali jaye
+         const blob = new Blob([data], { type: 'application/json' });
+         navigator.sendBeacon(url, blob);
+     };
+ 
+     window.addEventListener("beforeunload", handleTabClose);
+ 
+     return () => {
+         window.removeEventListener("beforeunload", handleTabClose);
+     };
+ }, []);
 // useEffect(() => {
 //   // 1. Storage se 'userInfo' nikalna (Kyunki ab hum isi key mein save kar rahe hain)
 //   const storedData = sessionStorage.getItem('userInfo');
@@ -97,7 +103,7 @@ useEffect(() => {
   // Initials ke liye Avatar URL (UI Avatars service)
   const avatarUrl = `https://ui-avatars.com/api/?name=${adminName}&background=10b981&color=fff&bold=true`;
 
-const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
         // Correct key: "userInfo" dhoondein
         const storedInfo = sessionStorage.getItem("userInfo");
@@ -125,6 +131,34 @@ const handleLogout = async () => {
         window.location.href = "/login";
     }
 };
+// const handleLogout = async () => {
+//     try {
+//         // Correct key: "userInfo" dhoondein
+//         const storedInfo = sessionStorage.getItem("userInfo");
+//         if (!storedInfo) {
+//             window.location.href = "/login";
+//             return;
+//         }
+
+//         const userData = JSON.parse(storedInfo);
+//         const token = sessionStorage.getItem("token");
+
+//         // Backend call: userId bhejna zaroori hai status false karne ke liye
+//         // backend controller mein user._id ko humne 'id' key mein bheja hai
+//         await axios.post("http://localhost:3000/api/auth/logout", 
+//             { userId: userData.id }, 
+//             { headers: { Authorization: `Bearer ${token}` } }
+//         );
+
+//         // Frontend clear
+//         sessionStorage.clear();
+//         window.location.href = "/login";
+//     } catch (error) {
+//         console.error("Logout failed", error);
+//         sessionStorage.clear();
+//         window.location.href = "/login";
+//     }
+// };
   // const handleLogout = async () => {
   //   sessionStorage.clear();
   //   try {

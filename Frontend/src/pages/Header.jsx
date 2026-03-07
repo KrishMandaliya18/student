@@ -29,15 +29,27 @@ const Header = ({ setIsOpen }) => {
     // }
 
     // Dropdown close logic
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowProfileMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
+// Isse apne main component ke andar rakhein
+
+    const handleTabClose = () => {
+        // Aapke backend ka URL
+        const url = "http://localhost:5000/api/auth/logout-on-close"; 
+        
+        // User ki pehchan ke liye email ya ID bhejein
+        const data = JSON.stringify({ email: user.email }); 
+        
+        // Beacon API ensure karta hai ki request successfully chali jaye
+        const blob = new Blob([data], { type: 'application/json' });
+        navigator.sendBeacon(url, blob);
+    };
+
+    window.addEventListener("beforeunload", handleTabClose);
+
+    return () => {
+        window.removeEventListener("beforeunload", handleTabClose);
+    };
+}, []);
   // Initials ke liye Avatar URL (UI Avatars service)
   const avatarUrl = `https://ui-avatars.com/api/?name=${studentName}&background=10b981&color=fff&bold=true`;
   
@@ -50,6 +62,7 @@ const handleLogout = async () => {
             return;
         }
 
+        
         const userData = JSON.parse(storedInfo);
         const token = sessionStorage.getItem("token");
 

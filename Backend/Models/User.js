@@ -58,7 +58,8 @@
        },
      role: { type: String, enum: ['student', 'admin'], default: 'student' },
      universityId: { type: String, required: true, unique: true },
-     isLoggedIn: { type: Boolean, default: false } 
+     isLoggedIn: { type: Boolean, default: false } ,
+     lastActiveAt: { type: Date, default: Date.now } // <--- Yeh line add karein
 }, { timestamps: true });
    
 

@@ -225,7 +225,7 @@ const deleteStudent = async (id) => {
 
   return (
     <div className="p-4 md:p-10 bg-[#0a0c10] text-white min-h-screen font-sans">
-          <ToastContainer position="top-right" autoClose={3000} />
+          {/* <ToastContainer position="top-right" autoClose={3000} /> */}
 
       {/* --- TOP BAR --- */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
