@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./Routes/AuthRoute');
 
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -12,6 +13,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 // 3. Socket.io Setup
+// const io = require('socket.io')(server, { cors: { origin: "*" } });
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
@@ -27,6 +29,8 @@ io.on('connection', (socket) => {
     console.log('Admin or Student Connected:', socket.id);
 });
 
+
+app.set('socketio', io);
 // Routes
 app.use('/api/auth', authRoutes);
 

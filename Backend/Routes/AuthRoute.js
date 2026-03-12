@@ -7,6 +7,7 @@ const {
     forceLogout, // Force logout controller
     logoutOnClose,
     getAllStudents, 
+    getStudents,
     updateStudentByAdmin, 
     deleteStudentByAdmin, 
     getUserProfile, 
@@ -18,6 +19,7 @@ const { protect, isAdmin } = require('../Middleware/auth');
 
 // --- PUBLIC ROUTES ---
 router.post('/signup', signup);
+router.get('/students', getStudents); // Naya route students ko fetch karne ke liye
 router.post('/login', login);
 router.post('/logout', protect, logout);
 router.post('/force-logout', forceLogout); // Force logout route

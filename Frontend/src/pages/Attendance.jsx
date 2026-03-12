@@ -1,100 +1,194 @@
-import React from 'react';
-import { CheckCircle, XCircle, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { CheckCircle, XCircle, Clock, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
+import { io } from 'socket.io-client';
+import axios from 'axios';
+
+const socket = io('http://localhost:3000'); 
 
 const Attendance = () => {
-  // Socho ye data Backend/Admin se aa raha hai
-  // Student isse edit nahi kar sakta (Read-Only)
-  const attendanceLogs = [
-    { date: "2026-03-01", status: "Present", method: "Admin Panel" },
-    { date: "2026-03-02", status: "Present", method: "Admin Panel" },
-    { date: "2026-03-03", status: "Absent", method: "Admin Panel" },
-  ];
+  // --- 1. Dummy Data for UI Testing ---
+  // Real time mein ye backend se aayega, abhi UI dekhne ke liye yahan sample data hai
+  const [attendanceLogs, setAttendanceLogs] = useState([
+    { day: 11, month: 2, year: 2026, status: "Present", method: "Admin Panel" },
+    { day: 10, month: 2, year: 2026, status: "Absent", method: "Admin Panel" },
+    { day: 9, month: 2, year: 2026, status: "Present", method: "Admin Panel" },
+    { day: 8, month: 2, year: 2026, status: "Present", method: "Admin Panel" },
+  ]);
+  const [loading, setLoading] = useState(false);
 
-  const totalLectures = 30;
+  // --- 2. Month Dropdown Logic ---
+  const monthOptions = useMemo(() => {
+    const options = [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    for (let m = 0; m <= currentMonth; m++) {
+      const date = new Date(currentYear, m, 1);
+      const monthName = date.toLocaleString('default', { month: 'long' });
+      options.push(`${monthName} ${currentYear}`);
+    } 
+    return options.reverse();
+  }, []);
+
+  const [selectedMonth, setSelectedMonth] = useState(monthOptions[0]);
+
+  // --- 3. Initial Data Fetch ---
+ // --- 4. Real-time Socket Listener (Improved) ---
+useEffect(() => {
+    const userData = JSON.parse(sessionStorage.getItem('user'));
+    const currentUniversityId = userData?.universityId;
+
+    if (currentUniversityId) {
+        const eventName = `attendanceUpdate_${currentUniversityId}`;
+        socket.on(eventName, (data) => {
+            // Check: Kya ye update usi month ka hai jo screen par khula hai?
+            const currentUIIndex = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(selectedMonth.split(' ')[0]);
+            
+            if (parseInt(data.month) !== currentUIIndex) return;
+
+            setAttendanceLogs((prevLogs) => {
+                const existingIndex = prevLogs.findIndex(log => log.day === parseInt(data.day));
+                const updatedLogs = [...prevLogs];
+                if (existingIndex > -1) {
+                    updatedLogs[existingIndex] = { ...updatedLogs[existingIndex], status: data.status };
+                    return updatedLogs;
+                } else {
+                    return [{ ...data, method: "Live Update" }, ...prevLogs].sort((a, b) => b.day - a.day);
+                }
+            });
+        });
+    }
+    return () => socket.off(`attendanceUpdate_${currentUniversityId}`);
+}, [selectedMonth]); // selectedMonth yaha dependency mein hona chahiye
+
+  // --- 4. Real-time Socket Listener ---
+  useEffect(() => {
+    const userData = JSON.parse(sessionStorage.getItem('user'));
+    const currentUniversityId = userData?.universityId;
+
+    if (currentUniversityId) {
+      const eventName = `attendanceUpdate_${currentUniversityId}`;
+      socket.on(eventName, (data) => {
+        setAttendanceLogs((prevLogs) => {
+          const existingIndex = prevLogs.findIndex(log => log.day === parseInt(data.day));
+          const updatedLogs = [...prevLogs];
+          if (existingIndex > -1) {
+            updatedLogs[existingIndex] = { ...updatedLogs[existingIndex], status: data.status };
+            return updatedLogs;
+          } else {
+            return [{ ...data, method: "Live Update" }, ...prevLogs].sort((a, b) => b.day - a.day);
+          }
+        });
+      });
+    }
+    return () => socket.off(`attendanceUpdate_${currentUniversityId}`);
+  }, []);
+
+  // --- 5. Stats Calculation ---
   const presentCount = attendanceLogs.filter(l => l.status === "Present").length;
-  const percentage = ((presentCount / attendanceLogs.length) * 100).toFixed(1);
+  const absentCount = attendanceLogs.filter(l => l.status === "Absent").length;
+  const totalTracked = attendanceLogs.length;
+  const percentage = totalTracked > 0 ? ((presentCount / totalTracked) * 100).toFixed(1) : "0.0";
+  const totalLectures = 30;
+
+  // --- UI Component: StatBox ---
+  const StatBox = ({ icon, value, label, subValue }) => (
+    <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 shadow-lg hover:border-slate-700 transition-all group">
+      <div className="mb-4 p-2 bg-slate-800/50 w-fit rounded-lg group-hover:bg-blue-500/10 transition-colors">
+        {icon}
+      </div>
+      <h3 className="text-3xl font-bold text-white leading-none tracking-tight">
+        {value}
+        {subValue && <span className="text-slate-500 text-lg font-normal"> {subValue}</span>}
+      </h3>
+      <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-3">{label}</p>
+    </div>
+  );
 
   return (
-    <div className="bg-[#0b1120] min-h-screen p-6 text-slate-200">
+    <div className="bg-[#0b1120] min-h-screen p-4 md:p-8 text-slate-200 font-sans">
       <div className="max-w-5xl mx-auto">
         
-        {/* Header - Non-Editable */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <div>
-            <h1 className="text-3xl font-bold text-white">Attendance Overview</h1>
-            <p className="text-slate-400 mt-1 flex items-center gap-2">
-               <CalendarIcon size={16} /> Data synced with Admin Hub
+            <h1 className="text-3xl font-bold text-white tracking-tight">Attendance Dashboard</h1>
+            <p className="text-slate-400 mt-1 flex items-center gap-2 text-sm font-medium">
+               <CalendarIcon size={16} className="text-blue-400" /> Real-time Academic Tracker
             </p>
           </div>
-          <div className="bg-green-500/10 border border-green-500/20 px-4 py-2 rounded-full">
-            <span className="text-green-400 font-medium text-sm">Status: Good Standing</span>
+
+          <div className="relative">
+            <select 
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="appearance-none bg-[#1e293b] border border-slate-700 text-sm rounded-xl px-5 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer text-white font-semibold shadow-xl w-full md:w-auto"
+            >
+              {monthOptions.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500" />
           </div>
         </div>
 
-        {/* Top Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {/* Circular Percentage (Simple Tailwind Circle) */}
-          <div className="bg-[#1e293b] p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-700">
-             <div className="relative w-24 h-24 mb-3">
-                <svg className="w-full h-full" viewBox="0 0 36 36">
-                  <path className="stroke-[#334155] stroke-[3]" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path className="stroke-[#10b981] stroke-[3] transition-all duration-1000" strokeDasharray={`${percentage}, 100`} strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center font-bold text-xl">{percentage}%</div>
-             </div>
-             <p className="text-xs text-slate-400">Total Attendance</p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-[#1e293b] p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-800 shadow-lg">
+            <div className="relative w-16 h-16 mb-2">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="16" fill="none" className="stroke-slate-700" strokeWidth="3.5" />
+                <circle cx="18" cy="18" r="16" fill="none" className="stroke-blue-500" strokeWidth="3.5" strokeDasharray={`${percentage}, 100`} strokeLinecap="round" />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-white">{percentage}%</div>
+            </div>
+            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest text-center">Attendance %</p>
           </div>
 
-          <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-700">
-            <CheckCircle className="text-green-500 mb-2" size={24} />
-            <h3 className="text-2xl font-bold">{presentCount}</h3>
-            <p className="text-xs text-slate-400">Days Present</p>
-          </div>
-
-          <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-700">
-            <XCircle className="text-red-500 mb-2" size={24} />
-            <h3 className="text-2xl font-bold">{attendanceLogs.length - presentCount}</h3>
-            <p className="text-xs text-slate-400">Days Absent</p>
-          </div>
-
-          <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-700">
-            <Clock className="text-blue-400 mb-2" size={24} />
-            <h3 className="text-2xl font-bold">{totalLectures}</h3>
-            <p className="text-xs text-slate-400">Total days</p>
-          </div>
+          <StatBox icon={<CheckCircle size={22} className="text-green-500" />} value={presentCount} label="Days Present" />
+          <StatBox icon={<XCircle size={22} className="text-red-500" />} value={absentCount} label="Days Absent" />
+          <StatBox icon={<Clock size={22} className="text-blue-400" />} value={totalTracked} subValue={`/ ${totalLectures}`} label="Lectures Tracked" />
         </div>
 
-        {/* Read-Only Table */}
-        <div className="bg-[#1e293b] rounded-2xl border border-slate-700 overflow-hidden shadow-xl">
-          <div className="p-5 bg-[#243147] font-semibold border-b border-slate-700">
-            Recent Logs (Read-Only)
+        {/* Logs Table */}
+        <div className="bg-[#1e293b] rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
+          <div className="p-6 bg-[#243147]/50 border-b border-slate-800 flex justify-between items-center">
+            <h3 className="font-bold text-lg text-white">Monthly Logs</h3>
+            <div className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] text-blue-400 uppercase font-bold animate-pulse">
+              ● Live Updating
+            </div>
           </div>
+          
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-[#1e293b] text-slate-400 text-xs uppercase">
-                <tr>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Marked By</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700">
-                {attendanceLogs.map((log, i) => (
-                  <tr key={i} className="text-sm">
-                    <td className="px-6 py-4">{log.date}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-md ${log.status === 'Present' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                        ● {log.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-500">{log.method}</td>
+            {attendanceLogs.length > 0 ? (
+              <table className="w-full text-left">
+                <thead className="text-slate-500 text-xs uppercase bg-slate-900/30">
+                  <tr>
+                    <th className="px-8 py-5">Date</th>
+                    <th className="px-8 py-5">Status</th>
+                    <th className="px-8 py-5 text-right">Method</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-800/50">
+                  {attendanceLogs.map((log, i) => (
+                    <tr key={i} className="hover:bg-white/5 transition-colors">
+                      <td className="px-8 py-4 text-sm text-slate-300">
+                        {log.day} {selectedMonth}
+                      </td>
+                      <td className="px-8 py-4">
+                        <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold ${log.status === 'Present' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                          {log.status}
+                        </span>
+                      </td>
+                      <td className="px-8 py-4 text-sm text-slate-500 text-right">{log.method}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="p-20 text-center text-slate-500">No records found.</div>
+            )}
           </div>
         </div>
-
       </div>
     </div>
   );

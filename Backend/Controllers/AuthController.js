@@ -101,11 +101,17 @@ exports.signup = async (req, res) => {
             email,
             password: hashedPassword,
             role,
-            universityId
+            universityId,
+            isLoggedIn: true, // Naya user signup hote hi active dikhega
+            lastActiveAt: new Date()
         });
 
         await user.save();
 
+        // Real-time update for dashboard
+        if (global.io) {
+            global.io.emit('statusChanged', { userId: user._id, isLoggedIn: true });
+        }
         // 6. Token Generation
         const token = jwt.sign(
             { id: user._id, role: user.role },
@@ -121,7 +127,8 @@ exports.signup = async (req, res) => {
                 name: user.name,
                 role: user.role,
                 email: user.email,
-                universityId: user.universityId
+                universityId: user.universityId,
+                isLoggedIn: true // Response mein bhi bhej rahe hain
             }
         });
 
@@ -131,6 +138,16 @@ exports.signup = async (req, res) => {
     }
 };
 
+// Express route
+exports.getStudents = async (req, res) => {
+    try {
+        // Sirf unhe fetch karein jinka role 'student' hai
+        const students = await User.find({ role: 'student' }).select('-password');
+        res.json(students);
+    } catch (err) {
+        res.status(500).json({ message: "Server Error" });
+    }
+};
         
 exports.login = async (req, res) => {
     try {
@@ -375,7 +392,11 @@ exports.logout = async (req, res) => {
             lastActiveAt: new Date()
              
         });
-        global.io.emit('statusChanged', { userId: userId, isLoggedIn: false });
+        // Socket.io se dashboard ko signal bhejein
+        if (global.io) {
+            global.io.emit('statusChanged', { userId: userId, isLoggedIn: false });
+        }
+        // global.io.emit('statusChanged', { userId: userId, isLoggedIn: false });
         res.json({ msg: "Logged out successfully" });
     } catch (err) {
         console.error(err.message);
