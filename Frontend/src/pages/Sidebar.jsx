@@ -20,17 +20,44 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   }, []);
 
   // --- Logout Logic ---
-  const handleLogout = async () => {
+  // const handleLogout = async () => {
+  //   try {
+  //     await axios.post('http://localhost:5000/api/auth/logout');
+  //     localStorage.clear(); // Clear all data
+  //     navigate('/login');
+  //   } catch (error) {
+  //     localStorage.clear();
+  //     navigate('/login');
+  //   }
+  // };
+ const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/logout');
-      localStorage.clear(); // Clear all data
-      navigate('/login');
-    } catch (error) {
-      localStorage.clear();
-      navigate('/login');
-    }
-  };
+        // Correct key: "userInfo" dhoondein
+        const storedInfo = sessionStorage.getItem("userInfo");
+        if (!storedInfo) {
+            window.location.href = "/login";
+            return;
+        }
 
+        const userData = JSON.parse(storedInfo);
+        const token = sessionStorage.getItem("token");
+
+        // Backend call: userId bhejna zaroori hai status false karne ke liye
+        // backend controller mein user._id ko humne 'id' key mein bheja hai
+        await axios.post("http://localhost:3000/api/auth/logout", 
+            { userId: userData.id }, 
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // Frontend clear
+        sessionStorage.clear();
+        window.location.href = "/login";
+    } catch (error) {
+        console.error("Logout failed", error);
+        sessionStorage.clear();
+        window.location.href = "/login";
+    }
+};
   const navItems = [
     { path: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20}/> },
     { path: 'assignments', label: 'Assignments', icon: <ClipboardList size={20}/> },

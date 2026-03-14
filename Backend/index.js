@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./Routes/AuthRoute');
 const attendanceRoutes = require('./Routes/AttendanceRoute');
+const NoticeRoutes = require('./Routes/NoticeRoute');
 
 
 const app = express();
@@ -35,6 +36,8 @@ app.set('socketio', io);
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
+
+app.use('/api/notices', NoticeRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB Connected..."))

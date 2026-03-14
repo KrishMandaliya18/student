@@ -95,11 +95,34 @@ useEffect(() => {
     // Refresh page to reset data or refetch
     window.location.reload(); 
   };
+ const handleLogout = async () => {
+    try {
+        // Correct key: "userInfo" dhoondein
+        const storedInfo = sessionStorage.getItem("userInfo");
+        if (!storedInfo) {
+            window.location.href = "/login";
+            return;
+        }
 
-  const handleLogout = () => {
-    localStorage.removeItem('userInfo');
-    window.location.href = '/login';
-  };
+        const userData = JSON.parse(storedInfo);
+        const token = sessionStorage.getItem("token");
+
+        // Backend call: userId bhejna zaroori hai status false karne ke liye
+        // backend controller mein user._id ko humne 'id' key mein bheja hai
+        await axios.post("http://localhost:3000/api/auth/logout", 
+            { userId: userData.id }, 
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // Frontend clear
+        sessionStorage.clear();
+        window.location.href = "/login";
+    } catch (error) {
+        console.error("Logout failed", error);
+        sessionStorage.clear();
+        window.location.href = "/login";
+    }
+};
 
   if (loading) return <div className="text-white p-10 text-center">Loading Profile...</div>;
 

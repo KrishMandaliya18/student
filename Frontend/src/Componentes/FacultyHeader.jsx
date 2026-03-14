@@ -216,7 +216,7 @@ useEffect(() => {
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 rounded-xl transition-colors" 
                 onClick={() => {
                   setShowProfileMenu(false);
-                  navigate('/overview/facultydashboard/settings');
+                  navigate('/overview/admindashboard/settings');
                 }}
               >
                 <User size={16} /> My Profile
