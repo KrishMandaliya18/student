@@ -3,17 +3,10 @@ import { CheckCircle, XCircle, Clock, Calendar as CalendarIcon, ChevronDown } fr
 import { io } from 'socket.io-client';
 import axios from 'axios';
 
-const socket = io('http://localhost:3000'); 
+const socket = io('http://localhost:3000');
 
 const Attendance = () => {
-  // --- 1. Dummy Data for UI Testing ---
-  // Real time mein ye backend se aayega, abhi UI dekhne ke liye yahan sample data hai
-  const [attendanceLogs, setAttendanceLogs] = useState([
-    { day: 11, month: 2, year: 2026, status: "Present", method: "Admin Panel" },
-    { day: 10, month: 2, year: 2026, status: "Absent", method: "Admin Panel" },
-    { day: 9, month: 2, year: 2026, status: "Present", method: "Admin Panel" },
-    { day: 8, month: 2, year: 2026, status: "Present", method: "Admin Panel" },
-  ]);
+  const [attendanceLogs, setAttendanceLogs] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // --- 2. Month Dropdown Logic ---
@@ -27,49 +20,58 @@ const Attendance = () => {
       const date = new Date(currentYear, m, 1);
       const monthName = date.toLocaleString('default', { month: 'long' });
       options.push(`${monthName} ${currentYear}`);
-    } 
+    }
     return options.reverse();
   }, []);
 
   const [selectedMonth, setSelectedMonth] = useState(monthOptions[0]);
 
   // --- 3. Initial Data Fetch ---
- // --- 4. Real-time Socket Listener (Improved) ---
-useEffect(() => {
-    const userData = JSON.parse(sessionStorage.getItem('user'));
-    const currentUniversityId = userData?.universityId;
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      try {
+        setLoading(true);
+        // Using 'userInfo' as that's what we saved during Signup/Login
+        const userData = JSON.parse(sessionStorage.getItem('userInfo'));
+        const currentUniversityId = userData?.universityId;
 
-    if (currentUniversityId) {
-        const eventName = `attendanceUpdate_${currentUniversityId}`;
-        socket.on(eventName, (data) => {
-            // Check: Kya ye update usi month ka hai jo screen par khula hai?
-            const currentUIIndex = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(selectedMonth.split(' ')[0]);
-            
-            if (parseInt(data.month) !== currentUIIndex) return;
+        if (currentUniversityId) {
+          const res = await axios.get(`http://localhost:3000/api/attendance/${currentUniversityId}`);
 
-            setAttendanceLogs((prevLogs) => {
-                const existingIndex = prevLogs.findIndex(log => log.day === parseInt(data.day));
-                const updatedLogs = [...prevLogs];
-                if (existingIndex > -1) {
-                    updatedLogs[existingIndex] = { ...updatedLogs[existingIndex], status: data.status };
-                    return updatedLogs;
-                } else {
-                    return [{ ...data, method: "Live Update" }, ...prevLogs].sort((a, b) => b.day - a.day);
-                }
-            });
-        });
-    }
-    return () => socket.off(`attendanceUpdate_${currentUniversityId}`);
-}, [selectedMonth]); // selectedMonth yaha dependency mein hona chahiye
+          const currentUIIndex = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(selectedMonth.split(' ')[0]);
+          const currentYear = parseInt(selectedMonth.split(' ')[1]);
+
+          const filteredData = res.data.data
+            .filter(log => log.month === currentUIIndex && log.year === currentYear)
+            .map(log => ({ ...log, method: "System Record" }))
+            .sort((a, b) => b.day - a.day);
+
+          setAttendanceLogs(filteredData);
+        }
+      } catch (err) {
+        console.error("Error fetching attendance:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAttendance();
+  }, [selectedMonth]);
+
 
   // --- 4. Real-time Socket Listener ---
   useEffect(() => {
-    const userData = JSON.parse(sessionStorage.getItem('user'));
+    const userData = JSON.parse(sessionStorage.getItem('userInfo'));
     const currentUniversityId = userData?.universityId;
 
     if (currentUniversityId) {
       const eventName = `attendanceUpdate_${currentUniversityId}`;
       socket.on(eventName, (data) => {
+        // Check if update is for the currently viewed month
+        const currentUIIndex = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(selectedMonth.split(' ')[0]);
+        const currentYear = parseInt(selectedMonth.split(' ')[1]);
+
+        if (parseInt(data.month) !== currentUIIndex || parseInt(data.year) !== currentYear) return;
+
         setAttendanceLogs((prevLogs) => {
           const existingIndex = prevLogs.findIndex(log => log.day === parseInt(data.day));
           const updatedLogs = [...prevLogs];
@@ -83,7 +85,7 @@ useEffect(() => {
       });
     }
     return () => socket.off(`attendanceUpdate_${currentUniversityId}`);
-  }, []);
+  }, [selectedMonth]);
 
   // --- 5. Stats Calculation ---
   const presentCount = attendanceLogs.filter(l => l.status === "Present").length;
@@ -109,18 +111,18 @@ useEffect(() => {
   return (
     <div className="bg-[#0b1120] min-h-screen p-4 md:p-8 text-slate-200 font-sans">
       <div className="max-w-5xl mx-auto">
-        
+
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <div>
             <h1 className="text-3xl font-bold text-white tracking-tight">Attendance Dashboard</h1>
             <p className="text-slate-400 mt-1 flex items-center gap-2 text-sm font-medium">
-               <CalendarIcon size={16} className="text-blue-400" /> Real-time Academic Tracker
+              <CalendarIcon size={16} className="text-blue-400" /> Real-time Academic Tracker
             </p>
           </div>
 
           <div className="relative">
-            <select 
+            <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="appearance-none bg-[#1e293b] border border-slate-700 text-sm rounded-xl px-5 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer text-white font-semibold shadow-xl w-full md:w-auto"
@@ -157,7 +159,7 @@ useEffect(() => {
               ● Live Updating
             </div>
           </div>
-          
+
           <div className="overflow-x-auto">
             {attendanceLogs.length > 0 ? (
               <table className="w-full text-left">

@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./Routes/AuthRoute');
+const attendanceRoutes = require('./Routes/AttendanceRoute');
 
 
 const app = express();
@@ -33,6 +34,7 @@ io.on('connection', (socket) => {
 app.set('socketio', io);
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/attendance', attendanceRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB Connected..."))
