@@ -56,7 +56,7 @@ const Header = ({ setIsOpen }) => {
     };
   }, []);
 
-  const avatarUrl = `https://ui-avatars.com/api/?name=${studentName}&background=10b981&color=fff&bold=true`;
+ const avatarUrl = `https://ui-avatars.com/api/?name=${studentName}&background=6366f1&color=fff&bold=true`;
 
   const handleLogout = async () => {
     try {
@@ -92,17 +92,17 @@ const Header = ({ setIsOpen }) => {
       </div>
 
       <div className="flex items-center gap-4 lg:gap-6">
-        <div className="relative cursor-pointer p-3 bg-slate-900/50 rounded-2xl border border-white/5 hover:border-indigo-500/50 transition-all group">
+        {/* <div className="relative cursor-pointer p-3 bg-slate-900/50 rounded-2xl border border-white/5 hover:border-indigo-500/50 transition-all group">
           <Bell size={20} className="text-slate-400 group-hover:text-indigo-400" />
           <span className="absolute top-3 right-3 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#020617]"></span>
-        </div>
+        </div> */}
 
         <div className="relative" ref={menuRef}>
           <div 
             onClick={() => setShowProfileMenu(!showProfileMenu)} 
             className="flex items-center gap-3 bg-slate-900/50 p-1 lg:p-1.5 lg:pr-5 rounded-2xl border border-white/5 hover:border-indigo-500/50 transition-all cursor-pointer"
           >
-            <img src={avatarUrl} className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl" alt="profile" />
+            <img src={avatarUrl} className=" w-8 h-8 lg:w-10 lg:h-10 rounded-xl" alt="profile" />
             
             <div className="hidden md:block">
               <p className="text-xs font-black text-white uppercase tracking-widest leading-none">

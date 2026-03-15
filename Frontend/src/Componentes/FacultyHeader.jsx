@@ -186,10 +186,10 @@ useEffect(() => {
 
       <div className="flex items-center gap-4 lg:gap-6">
         {/* Notification Bell */}
-        <div className="relative cursor-pointer p-3 bg-slate-900/50 rounded-2xl border border-white/5 hover:border-emerald-500/50 transition-all group">
+        {/* <div className="relative cursor-pointer p-3 bg-slate-900/50 rounded-2xl border border-white/5 hover:border-emerald-500/50 transition-all group">
           <Bell size={20} className="text-slate-400 group-hover:text-emerald-400" />
           <span className="absolute top-3 right-3 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#020617]"></span>
-        </div>
+        </div> */}
 
         {/* Profile Dropdown */}
         <div className="relative" ref={menuRef}>
