@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Save, Edit2, X, Trash2, Lock } from 'lucide-react';
 import axios from 'axios'; // Step 2 ke liye zaroori
 
-const FacultySettings = () => {
+const AdminSettings = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   
@@ -215,4 +215,4 @@ useEffect(() => {
   );
 };
 
-export default FacultySettings;
+export default AdminSettings;

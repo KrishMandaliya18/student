@@ -3,59 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 
-// exports.signup = async (req, res) => {
-//     try {
-//         const { name, email, password, role, enrollmentNumber, secretKey } = req.body;
 
-//         let user = await User.findOne({ email });
-//         if (user) return res.status(400).json({ msg: "User already exists" });
-
-//         let universityId ; 
-//         if (role === 'admin') {
-//             if (secretKey !== process.env.ADMIN_SECRET) {
-//                 return res.status(403).json({ msg: "Invalid Secret Key for Admin" });
-//             }
-//             universityId = `ADM-${Math.floor(1000 + Math.random() * 9000)}`;
-//         }
-
-//         const salt = await bcrypt.genSalt(10);
-//         const hashedPassword = await bcrypt.hash(password, salt);
-
-//         user = new User({
-//             name,
-//             email,
-//             password:hashedPassword,
-//             role,
-//             universityId
-//         });
-
-//         await user.save();
-
-//         // --- TOKEN GENERATION ADDED ---
-//         const token = jwt.sign(
-//             { id: user._id, role: user.role },
-//             process.env.JWT_SECRET || 'secret',
-//             { expiresIn: '7d' }
-//         );
-
-//         // Response mein token aur user object bhejein
-//         res.status(201).json({ 
-//             msg: "User registered successfully", 
-//             // universityId,
-//             token,
-//             user: {
-//                 id: user._id,
-//                 name: user.name,
-//                 role: user.role,
-//                 email: user.email,
-//                 universityId: user.universityId
-//             }
-//         });
-
-//     } catch (err) {
-//         res.status(500).send("Server Error: " + err.message);
-//     }
-// };
 
 
 
@@ -182,9 +130,6 @@ if (diffInMinutes < 15) {
         if (!isMatch) {
             return res.status(400).json({ msg: "Invalid Credentials" });
         }
-
-        // Step 4: Login status update karein
-        // Step 4: Login status check aur update
 
 
 user.isLoggedIn = true;
@@ -371,19 +316,7 @@ exports.deleteStudentByAdmin = async (req, res) => {
   }
 };
 
-// exports.deleteStudentByAdmin = async (req, res) => {
-//   try {
-//     const student = await User.findById(req.params.id);
-//     if (student) {
-//       await student.deleteOne();
-//       res.json({ message: 'Student removed successfully' });
-//     } else {
-//       res.status(404).json({ message: 'Student not found' });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
+
 exports.logout = async (req, res) => {
     try {
         const userId = req.user.id; // Yeh middleware se aayega (JWT verify hone ke baad)

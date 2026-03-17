@@ -3,7 +3,7 @@ import { Menu, Bell, ChevronDown, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const FacultyHeader = ({ setIsOpen }) => {
+const AdminHeader = ({ setIsOpen }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   // const [userData, setUserData] = useState({ name: 'Guest', role: 'User' });
   const [adminName, setAdminName] = useState('admin');
@@ -185,11 +185,7 @@ useEffect(() => {
       </div>
 
       <div className="flex items-center gap-4 lg:gap-6">
-        {/* Notification Bell */}
-        {/* <div className="relative cursor-pointer p-3 bg-slate-900/50 rounded-2xl border border-white/5 hover:border-emerald-500/50 transition-all group">
-          <Bell size={20} className="text-slate-400 group-hover:text-emerald-400" />
-          <span className="absolute top-3 right-3 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#020617]"></span>
-        </div> */}
+       
 
         {/* Profile Dropdown */}
         <div className="relative" ref={menuRef}>
@@ -235,4 +231,4 @@ useEffect(() => {
   );
 };
 
-export default FacultyHeader;
+export default AdminHeader;

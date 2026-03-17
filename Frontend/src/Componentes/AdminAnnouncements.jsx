@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Megaphone, Calendar, Send, Trash2, Edit3, X, Check, Eye } from 'lucide-react';
 import axios from 'axios';
 
-const Announcements = () => {
+const AdminAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -166,4 +166,4 @@ const Announcements = () => {
   );
 };
 
-export default Announcements;
+export default AdminAnnouncements;

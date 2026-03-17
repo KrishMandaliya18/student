@@ -15,14 +15,14 @@ import NoticeBoard from "./pages/NoticeBoard";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 
-// Faculty Components (Naye components jo humne banaye)
-import FacultyLayout from "./Componentes/FacultyLayout";
+ 
+import AdminLayout from "./Componentes/AdminLayout";
 import MyClasses from "./Componentes/MyClasses";
 import UploadNotes from "./Componentes/UploadNotes";
-import Announcements from "./Componentes/Announcements";
+import AdminAnnouncements from "./Componentes/AdminAnnouncements";
 import Notifications from "./Componentes/Notifications";
-import FacultySettings from "./Componentes/FacultySettings";
-import FacultyAttendance from "./Componentes/FacultyAttendance"; // Faculty Attendance Component
+import AdminSettings from "./Componentes/AdminSettings";
+import AdminAttendance from "./Componentes/AdminAttendance"; 
 
 
 function App() {
@@ -68,15 +68,15 @@ function App() {
       </Route>
         
       {/* 2. Faculty Dashboard (Nested Routing Setup) */}
-      <Route path="/overview/admindashboard" element={<FacultyLayout />}>
+      <Route path="/overview/admindashboard" element={<AdminLayout />}>
         <Route index element={<Navigate to="admin" replace />} />
         <Route path="admin" element={<MyClasses />} />
-        <Route path="attendance" element={<FacultyAttendance />} /> 
+        <Route path="attendance" element={<AdminAttendance />} /> 
         <Route path="materials" element={<UploadNotes />} />
-        <Route path="notice" element={<Announcements />} />
+        <Route path="notice" element={<AdminAnnouncements />} />
         <Route path="notifications" element={<Notifications />} />
         
-        <Route path="settings" element={<FacultySettings />} />
+        <Route path="settings" element={<AdminSettings />} />
       </Route>
 
     </Routes>

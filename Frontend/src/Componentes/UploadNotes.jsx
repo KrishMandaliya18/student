@@ -101,7 +101,6 @@ const UploadNotes = () => {
           </div>
         </div>
 
-        {/* Right Section: Manage & List */}
         <div className="bg-[#0a0f1c]/60 rounded-[2.5rem] border border-white/5 flex flex-col overflow-hidden backdrop-blur-xl shadow-2xl">
           <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
             <h4 className="font-black text-white uppercase tracking-widest text-[11px] italic">Recent {activeCategory}</h4>
