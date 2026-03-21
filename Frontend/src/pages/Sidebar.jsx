@@ -1,16 +1,16 @@
 import React, { useEffect, useRef } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom'; // useNavigate add kiya
+import { NavLink, useNavigate } from 'react-router-dom'; 
 import gsap from 'gsap';
 import axios from 'axios';
 import { 
   LayoutDashboard, ClipboardList, CheckCircle, 
-  FileText, CreditCard, Megaphone, Settings, 
+  FileText, Megaphone, Settings, 
   LogOut, GraduationCap, X 
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const sidebarRef = useRef(null);
-  const navigate = useNavigate(); // Hook initialize kiya
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     gsap.fromTo(sidebarRef.current, 
@@ -19,20 +19,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     );
   }, []);
 
-  // --- Logout Logic ---
-  // const handleLogout = async () => {
-  //   try {
-  //     await axios.post('http://localhost:5000/api/auth/logout');
-  //     localStorage.clear(); // Clear all data
-  //     navigate('/login');
-  //   } catch (error) {
-  //     localStorage.clear();
-  //     navigate('/login');
-  //   }
-  // };
  const handleLogout = async () => {
     try {
-        // Correct key: "userInfo" dhoondein
         const storedInfo = sessionStorage.getItem("userInfo");
         if (!storedInfo) {
             window.location.href = "/login";
@@ -42,14 +30,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         const userData = JSON.parse(storedInfo);
         const token = sessionStorage.getItem("token");
 
-        // Backend call: userId bhejna zaroori hai status false karne ke liye
-        // backend controller mein user._id ko humne 'id' key mein bheja hai
+      
         await axios.post("http://localhost:3000/api/auth/logout", 
             { userId: userData.id }, 
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // Frontend clear
         sessionStorage.clear();
         window.location.href = "/login";
     } catch (error) {
@@ -63,7 +49,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { path: 'assignments', label: 'Assignments', icon: <ClipboardList size={20}/> },
     { path: 'attendance', label: 'Attendance', icon: <CheckCircle size={20}/> },
     { path: 'exams', label: 'Exams', icon: <FileText size={20}/> },
-    // { path: 'fees', label: 'Fees', icon: <CreditCard size={20}/> },
     { path: 'notice', label: 'Notice Board', icon: <Megaphone size={20}/> },
     { path: 'settings', label: 'Settings', icon: <Settings size={20}/> },
   ];
@@ -111,7 +96,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           ))}
         </nav>
         
-        {/* Logout Section updated */}
         <div className="pt-6 border-t border-white/5">
           <button 
             onClick={handleLogout}

@@ -1,3 +1,6 @@
+
+
+
 const Notice = require('../Models/Notice');
 
 // 1. Naya Announcement Post karna (Admin ke liye)
@@ -52,3 +55,4 @@ exports.updateNotice = async (req, res) => {
         res.status(500).json({ message: "Update failed", error: error.message });
     }
 };
+

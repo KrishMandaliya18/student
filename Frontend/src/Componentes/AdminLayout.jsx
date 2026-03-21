@@ -15,7 +15,7 @@ const AdminLayout = () => {
       <main className="flex-1 h-screen overflow-y-auto relative z-10 scrollbar-hide">
         <AdminHeader setIsOpen={setIsMobileMenuOpen} />
         <div className="p-6 lg:p-10">
-          <Outlet /> {/* This renders the specific page component */}
+          <Outlet /> 
         </div>
       </main>
     </div>

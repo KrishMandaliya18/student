@@ -5,18 +5,15 @@ import axios from 'axios';
 
 const Header = ({ setIsOpen }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [studentName, setStudentName] = useState('Student'); // Default value
+  const [studentName, setStudentName] = useState('Student'); 
   const [studentRole, setStudentRole] = useState('User');
   const navigate = useNavigate();
   const menuRef = useRef(null);
 
-  // --- 1. loadUserData Function Define Kiya ---
   const loadUserData = () => {
-    // Pehle direct keys check karein
     const directName = sessionStorage.getItem('student_Name');
     const directRole = sessionStorage.getItem('student_Role');
 
-    // Agar object format mein hai (userInfo)
     const storedUserInfo = sessionStorage.getItem('userInfo');
     const parsedUser = storedUserInfo ? JSON.parse(storedUserInfo) : null;
 
@@ -24,23 +21,18 @@ const Header = ({ setIsOpen }) => {
       setStudentName(directName);
       setStudentRole(directRole || 'Student');
     } else if (parsedUser) {
-      // Yahan check karein ki aapka backend 'name' bhej raha hai ya 'fullname'
       setStudentName(parsedUser.fullname || parsedUser.name || 'Student');
       setStudentRole(parsedUser.role || 'Student');
     }
   };
 
   useEffect(() => {
-    // Initial load par data fetch karein
     loadUserData();
 
-    // Jab settings page se profile update ho, tab ye event trigger hoga
     window.addEventListener('profileUpdated', loadUserData);
     
-    // Storage event listener (agar dusre tab mein update ho)
     window.addEventListener('storage', loadUserData);
 
-    // Dropdown close logic
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setShowProfileMenu(false);

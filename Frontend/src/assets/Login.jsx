@@ -1,15 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  Mail,
-  Lock,
   ChevronRight,
-  AlertCircle,
   Bot,
   ShieldCheck,
   Loader2,
-  Hash,
 } from "lucide-react";
 import { gsap } from "gsap";
 import axios from "axios"; // 1. Axios Import
@@ -104,70 +99,6 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-
-  // --- Backend Integration Logic ---
-//   const handleLogin = async (e) => {
-//     e.preventDefault();
-//     setIsLoading(true);
-
-//     // Frontend Basic Validation
-//     if (!formData.email.endsWith("@gmail.com")) {
-//       toast.error("INVALID NEURAL LINK: ONLY @GMAIL.COM ALLOWED", {
-//         style: { background: '#1e1b4b', color: '#f87171', border: '1px solid #f87171' }
-//       });
-//       setIsLoading(false);
-//       return;
-//     }
-
-//     try {
-//       // API call to Backend
-//       const response = await axios.post("http://localhost:3000/api/auth/login", {
-//         email: formData.email,
-//         password: formData.password,
-//         role: role,
-//         // Optional: Agar aap admin login par bhi secret key check kar rahe hain
-//         secretKey: role === "admin" ? formData.secret : null 
-//       });
-//       const { token, user } = response.data;
-//     // Success Toast
-// toast.success(`ACCESS GRANTED: WELCOME ${response.data.user.name.toUpperCase()}`, {
-//   style: { background: '#0f172a', color: '#22d3ee', border: '1px solid #22d3ee' },
-//   iconTheme: { primary: '#22d3ee', secondary: '#0f172a' }
-// });
-
-// // Save Data to LocalStorage
-//                    if(user.role === 'admin'){
-// sessionStorage.setItem("admin_token",token);
-// sessionStorage.setItem("admin_Role", user.role);
-// sessionStorage.setItem("admin_Name", user.name);
-//                     }else{
-// sessionStorage.setItem("student_token", token);
-// sessionStorage.setItem("student_Role", user.role);
-// sessionStorage.setItem("student_Name", user.name);
-//                     } // User object pura store kar rahe hain
-
-// // --- UPDATED REDIRECT LOGIC ---
-// setTimeout(() => {
-//   if (role === "student") {
-//     // Student redirect path
-//     navigate("/overview/studentdashboard/dashboard");
-//   } else if (role === "admin") {
-//     // Admin redirect path
-//     navigate("/overview/admindashboard/admin");
-//   }
-// }, 1500);
-
-
-//     } catch (err) {
-//       // Error Toast
-//       const errorMessage = err.response?.data?.msg || "CONNECTION REFUSED: SYSTEM OFFLINE";
-//       toast.error(errorMessage.toUpperCase(), {
-//         style: { background: '#1e1b4b', color: '#f87171', border: '1px solid #f87171' }
-//       });
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
 
   return (
     <div className="h-screen w-full bg-[#020617] flex items-center justify-center p-6 overflow-hidden relative font-sans selection:bg-cyan-500">

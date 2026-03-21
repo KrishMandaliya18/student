@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 const authRoutes = require('./Routes/AuthRoute');
 const attendanceRoutes = require('./Routes/AttendanceRoute');
 const NoticeRoutes = require('./Routes/NoticeRoute');
@@ -38,6 +39,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
 
 app.use('/api/notices', NoticeRoutes);
+
+
+// Is line ko add karein taaki file download ho sake
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Routes register karein
+app.use('/api/assignments', require('./Routes/AssignmentRoutes'));
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB Connected..."))

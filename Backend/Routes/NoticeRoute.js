@@ -15,4 +15,5 @@ router.delete('/:id', deleteNotice);
 
 // Update route: /api/notices/:id
 router.put('/:id', updateNotice);
+
 module.exports =  router;

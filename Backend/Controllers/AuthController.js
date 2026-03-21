@@ -1,9 +1,6 @@
-const User = require('../Models/User'); // Aapka schema path
+const User = require('../Models/User'); 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
-
-
 
 
 

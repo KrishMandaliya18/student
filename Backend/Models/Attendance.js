@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 
 const attendanceSchema = new mongoose.Schema({
@@ -15,7 +16,6 @@ const attendanceSchema = new mongoose.Schema({
         default: 'Present'
     }
 }, { timestamps: true });
-
 // Ensure a student can only have one attendance record per day
 attendanceSchema.index({ universityId: 1, day: 1, month: 1, year: 1 }, { unique: true });
 

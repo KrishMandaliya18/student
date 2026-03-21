@@ -9,7 +9,6 @@ const Attendance = () => {
   const [attendanceLogs, setAttendanceLogs] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // --- 2. Month Dropdown Logic ---
   const monthOptions = useMemo(() => {
     const options = [];
     const now = new Date();
@@ -26,12 +25,10 @@ const Attendance = () => {
 
   const [selectedMonth, setSelectedMonth] = useState(monthOptions[0]);
 
-  // --- 3. Initial Data Fetch ---
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
         setLoading(true);
-        // Using 'userInfo' as that's what we saved during Signup/Login
         const userData = JSON.parse(sessionStorage.getItem('userInfo'));
         const currentUniversityId = userData?.universityId;
 
@@ -58,7 +55,6 @@ const Attendance = () => {
   }, [selectedMonth]);
 
 
-  // --- 4. Real-time Socket Listener ---
   useEffect(() => {
     const userData = JSON.parse(sessionStorage.getItem('userInfo'));
     const currentUniversityId = userData?.universityId;
@@ -66,7 +62,7 @@ const Attendance = () => {
     if (currentUniversityId) {
       const eventName = `attendanceUpdate_${currentUniversityId}`;
       socket.on(eventName, (data) => {
-        // Check if update is for the currently viewed month
+
         const currentUIIndex = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(selectedMonth.split(' ')[0]);
         const currentYear = parseInt(selectedMonth.split(' ')[1]);
 
@@ -87,14 +83,12 @@ const Attendance = () => {
     return () => socket.off(`attendanceUpdate_${currentUniversityId}`);
   }, [selectedMonth]);
 
-  // --- 5. Stats Calculation ---
   const presentCount = attendanceLogs.filter(l => l.status === "Present").length;
   const absentCount = attendanceLogs.filter(l => l.status === "Absent").length;
   const totalTracked = attendanceLogs.length;
   const percentage = totalTracked > 0 ? ((presentCount / totalTracked) * 100).toFixed(1) : "0.0";
   const totalLectures = 30;
 
-  // --- UI Component: StatBox ---
   const StatBox = ({ icon, value, label, subValue }) => (
     <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 shadow-lg hover:border-slate-700 transition-all group">
       <div className="mb-4 p-2 bg-slate-800/50 w-fit rounded-lg group-hover:bg-blue-500/10 transition-colors">
@@ -112,7 +106,6 @@ const Attendance = () => {
     <div className="bg-[#0b1120] min-h-screen p-4 md:p-8 text-slate-200 font-sans">
       <div className="max-w-5xl mx-auto">
 
-        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <div>
             <h1 className="text-3xl font-bold text-white tracking-tight">Attendance Dashboard</h1>
@@ -133,7 +126,6 @@ const Attendance = () => {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-[#1e293b] p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-800 shadow-lg">
             <div className="relative w-16 h-16 mb-2">
@@ -151,7 +143,6 @@ const Attendance = () => {
           <StatBox icon={<Clock size={22} className="text-blue-400" />} value={totalTracked} subValue={`/ ${totalLectures}`} label="Lectures Tracked" />
         </div>
 
-        {/* Logs Table */}
         <div className="bg-[#1e293b] rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
           <div className="p-6 bg-[#243147]/50 border-b border-slate-800 flex justify-between items-center">
             <h3 className="font-bold text-lg text-white">Monthly Logs</h3>

@@ -6,7 +6,7 @@ import { gsap } from 'gsap';
 const NoticeBoard = () => {
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(""); // Search state
+  const [searchTerm, setSearchTerm] = useState(""); 
   const [selectedNotice, setSelectedNotice] = useState(null); 
   
   const cardsRef = useRef([]);
@@ -27,11 +27,10 @@ const NoticeBoard = () => {
     fetchNotices();
   }, []);
 
-  // --- Search Logic ---
-  // Yeh Name, Date, Month ya Day teeno par kaam karega
+  
   const filteredNotices = notices.filter(notice => {
     const date = new Date(notice.createdAt);
-    const dateString = date.toLocaleDateString('en-GB'); // "DD/MM/YYYY"
+    const dateString = date.toLocaleDateString('en-GB'); 
     const monthName = date.toLocaleString('default', { month: 'long' }).toLowerCase();
     const day = date.getDate().toString();
     const search = searchTerm.toLowerCase();
@@ -45,7 +44,6 @@ const NoticeBoard = () => {
     );
   });
 
-  // --- GSAP Animation ---
   useEffect(() => {
     if (!loading && filteredNotices.length > 0) {
       gsap.fromTo(cardsRef.current, 
@@ -59,7 +57,6 @@ const NoticeBoard = () => {
     <div className="p-6 md:p-10 bg-[#020617] min-h-screen text-slate-200">
       <div className="max-w-5xl mx-auto">
         
-        {/* --- HEADER --- */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
           <div>
             <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic flex items-center gap-3">
@@ -69,7 +66,6 @@ const NoticeBoard = () => {
             <p className="text-[10px] font-bold text-slate-500 tracking-[0.3em] mt-3 uppercase italic">Live Student Updates</p>
           </div>
 
-          {/* New Search Bar (Replaced Calendar) */}
           <div className="relative w-full lg:w-80 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={18} />
             <input 
@@ -82,7 +78,6 @@ const NoticeBoard = () => {
           </div>
         </div>
 
-        {/* --- NOTICES LIST --- */}
         <div className="grid gap-5">
           {loading ? (
             <div className="space-y-4">
@@ -95,7 +90,6 @@ const NoticeBoard = () => {
                 ref={el => cardsRef.current[index] = el}
                 className="group relative bg-[#0a0f1c] border border-white/5 p-6 rounded-[2rem] hover:border-indigo-500/40 hover:bg-indigo-900/5 transition-all duration-500 shadow-2xl overflow-hidden"
               >
-                {/* Indigo Glow Effect */}
                 <div className="absolute -right-20 -top-20 w-40 h-40 bg-indigo-500/5 blur-[80px] group-hover:bg-indigo-500/10 transition-all" />
 
                 <div className="flex flex-col md:flex-row justify-between gap-6 relative z-10">
@@ -137,7 +131,6 @@ const NoticeBoard = () => {
           )}
         </div>
 
-        {/* --- MODAL (Full View) --- */}
         {selectedNotice && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/90 backdrop-blur-md transition-opacity" onClick={() => setSelectedNotice(null)} />

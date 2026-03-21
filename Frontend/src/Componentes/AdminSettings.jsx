@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Save, Edit2, X, Trash2, Lock } from 'lucide-react';
-import axios from 'axios'; // Step 2 ke liye zaroori
+import axios from 'axios';
 
 const AdminSettings = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  // State for form data
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,11 +13,9 @@ const AdminSettings = () => {
     password: '' 
   });
 
-  // --- STEP 2: BACKEND SE DATA LAYEIN ---
 useEffect(() => {
   const fetchProfile = async () => {
     try {
-      // 1. Storage check (sessionStorage use karein)
       const storedData = sessionStorage.getItem('userInfo');
       if (!storedData) {
         console.error("No user info found");
@@ -32,7 +29,6 @@ useEffect(() => {
         headers: { Authorization: `Bearer ${userInfo.token}` }
       };
 
-      // 2. Sahi URL use karein (Backend router ke hisaab se /api/auth/profile)
       const { data } = await axios.get('http://localhost:3000/api/auth/profile', config);
       
       setFormData({
@@ -55,7 +51,6 @@ useEffect(() => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- STEP 3: BACKEND ME SAVE KAREIN ---
   const handleSave = async () => {
   try {
     const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
@@ -68,11 +63,9 @@ useEffect(() => {
 
     const { data } = await axios.put('http://localhost:3000/api/auth/profile/update', formData, config);         
     
-    // 1. Storage update karein (Headers isi key ko read karta hai)
     const updatedInfo = { ...userInfo, name: data.name, email: data.email };
     sessionStorage.setItem('userInfo', JSON.stringify(updatedInfo));
     
-    // 2. Header ko signal bhejein (Custom Event)
     window.dispatchEvent(new Event('profileUpdated'));
 
     alert("Profile Successfully Updated!");
@@ -92,12 +85,10 @@ useEffect(() => {
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Refresh page to reset data or refetch
     window.location.reload(); 
   };
  const handleLogout = async () => {
     try {
-        // Correct key: "userInfo" dhoondein
         const storedInfo = sessionStorage.getItem("userInfo");
         if (!storedInfo) {
             window.location.href = "/login";
@@ -107,14 +98,12 @@ useEffect(() => {
         const userData = JSON.parse(storedInfo);
         const token = sessionStorage.getItem("token");
 
-        // Backend call: userId bhejna zaroori hai status false karne ke liye
-        // backend controller mein user._id ko humne 'id' key mein bheja hai
+    
         await axios.post("http://localhost:3000/api/auth/logout", 
             { userId: userData.id }, 
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // Frontend clear
         sessionStorage.clear();
         window.location.href = "/login";
     } catch (error) {
@@ -128,7 +117,6 @@ useEffect(() => {
 
   return (
     <div className="max-w-2xl space-y-8 p-6">
-      {/* Header Section */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-3xl font-black text-white italic tracking-tight">PROFILE</h3>
@@ -146,10 +134,8 @@ useEffect(() => {
         )}
       </div>
 
-      {/* Form Card */}
       <div className="bg-[#0f172a]/60 border border-white/5 rounded-[2.5rem] p-8 space-y-6 backdrop-blur-sm">
         
-        {/* Full Name */}
         <div className="space-y-2">
           <label className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] flex items-center gap-2 px-1">
             <User size={18}/> Full Name
@@ -164,7 +150,6 @@ useEffect(() => {
           />
         </div>
 
-        {/* Email Address */}
         <div className="space-y-2">
           <label className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] flex items-center gap-2 px-1">
             <Mail size={18}/> Email Address
@@ -179,7 +164,6 @@ useEffect(() => {
           />
         </div>
 
-        {/* Password */}
         <div className="space-y-2">
           <label className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] flex items-center gap-2 px-1">
             <Lock size={18}/> {isEditing ? "New Password" : "Password"}
@@ -195,7 +179,6 @@ useEffect(() => {
           />
         </div>
 
-        {/* Save Button */}
         {isEditing && (
           <button onClick={handleSave} className="w-full py-5 bg-emerald-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-emerald-500 transition-all shadow-2xl shadow-emerald-500/20 active:scale-[0.98]">
             <Save size={20} /> Save Changes
@@ -203,7 +186,6 @@ useEffect(() => {
         )}
       </div>
 
-      {/* Logout Section */}
       {!isEditing && (
         <div className="pt-4">
           <button onClick={handleLogout} className="w-full py-4 bg-rose-500/5 border border-rose-500/10 text-rose-500 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-rose-500 hover:text-white transition-all group">

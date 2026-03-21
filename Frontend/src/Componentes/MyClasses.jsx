@@ -4,10 +4,9 @@ import {
   Users, Plus, Search, Trash2, Edit2, Mail, X, UserPlus, ShieldCheck, Key
 } from 'lucide-react';
 import axios from 'axios';
-import { toast,ToastContainer } from 'react-toastify'; // Ye line top par add karein
+import { toast,ToastContainer } from 'react-toastify'; 
 import { io } from 'socket.io-client';
 
-// Backend URL define karein
 const SOCKET_URL = "http://localhost:3000"; 
 const socket = io(SOCKET_URL);
 const MyClasses = () => {
@@ -16,27 +15,23 @@ const MyClasses = () => {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // 1. Fetch Students from Database
   const fetchStudents = async () => {
     const userInfo = sessionStorage.getItem('userInfo');
   const token = userInfo ? JSON.parse(userInfo).token : null;
   
   
-  // Agar token nahi hai toh request mat bhejo
   if (!token || token === "null") {
     console.error("TOKEN MISSING: Please login again.");
     return;
   }
 
   try {
-    // Axios GET request with proper headers object
     const res = await axios.get('http://localhost:3000/api/auth/all-students', {
       headers: { 
         'Authorization': `Bearer ${token}` 
       }
     });
 
-    // Data set karein (res.data check karein agar array hai)
     setStudents(res.data.data || res.data);
     
   } catch (err) {
@@ -48,7 +43,6 @@ const MyClasses = () => {
 };
   useEffect(() => {
     fetchStudents();
-    // Socket Listener: Jab bhi koi status change ho
     socket.on('statusChanged', (data) => {
       setStudents((prevStudents) => 
         prevStudents.map((s) => 
@@ -68,7 +62,7 @@ const MyClasses = () => {
         _id: student._id, 
         name: student.name, 
         email: student.email, 
-        password:'' , // Security ke liye password khali rakhein edit ke waqt
+        password:'' ,
         universityId: student.universityId 
       });
     } else {
@@ -76,46 +70,6 @@ const MyClasses = () => {
     }
     setShowModal(true);
   };
-
-
-//   const handleSave = async (e) => {
-//   e.preventDefault();
-// const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
-// const userId = formData._id || userInfo.id;
-//   try {
-//     const config = { headers: { Authorization: `Bearer ${token}` } };
-    
-//     // UPDATE LOGIC
-//     if (formData._id) {
-//       await axios.put(`http://localhost:3000/api/auth/update-student/${formData._id}`, {
-//         name: formData.name,
-//         universityId: formData.universityId,
-//         email: formData.email,
-//         // Agar password box khali hai, toh null/empty bhejein
-//         password: formData.password || "" 
-//       }, config);
-      
-//       alert("Updated successfully! Ab naye ID/Password se login ho jayega.");
-//     }  else {
-//         // --- ADD NEW (Signup) LOGIC ---
-//         const signupData = {
-//           name: formData.name,
-//           email: formData.email,
-//           password: formData.password,
-//           role: 'student',
-//           enrollmentNumber: formData.universityId // Backend field name mapping
-//         };
-//     // ... baki code (Signup/Add)
-      
-//      await axios.post('http://localhost:3000/api/auth/signup', signupData);
-//         alert("New student enrolled!");
-//       }
-//     fetchStudents();
-//     setShowModal(false);
-//   } catch (err) {
-//     alert(err.response?.data?.message || "Update fail ho gaya");
-//   }
-// };
  
 
 const handleSave = async (e) => {
@@ -129,7 +83,6 @@ const handleSave = async (e) => {
         return;
     }
 
-    // Client-side Validation (Server par jane se pehle check)
     if (formData.password && formData.password.length < 6) {
         return toast.warn("Password 6 characters se bada hona chahiye!");
     }
@@ -138,7 +91,6 @@ const handleSave = async (e) => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
         
         if (formData._id) {
-            // UPDATE LOGIC
             await axios.put(`http://localhost:3000/api/auth/update-student/${formData._id}`, {
                 name: formData.name,
                 universityId: formData.universityId,
@@ -148,7 +100,6 @@ const handleSave = async (e) => {
             
             toast.success("Student Data Updated Successfully!");
         } else {
-            // ADD NEW LOGIC
             const signupData = {
                 name: formData.name,
                 email: formData.email,
@@ -163,54 +114,14 @@ const handleSave = async (e) => {
         fetchStudents();
         setShowModal(false);
     } catch (err) {
-        // Backend se jo message humne bheja tha (Duplicate ID etc.) wo yahan dikhega
         const errorMsg = err.response?.data?.message || "Operation fail ho gaya";
         toast.error(errorMsg);
     }
 };
 
-// const deleteStudent = async (id) => {
-//   try {
-//     // 1. Storage se data nikaalein (Check if it's localStorage or sessionStorage)
-//     const storedData = sessionStorage.getItem("userInfo") || localStorage.getItem("userInfo");
-    
-//     if (!storedData) {
-//       alert("Session expired. Please login again.");
-//       return;
-//     }
-
-//     const userInfo = JSON.parse(storedData);
-//     const token = userInfo?.token; // Check karein ki login response mein 'token' hi key thi
-
-//     if (!token) {
-//       console.log("UserInfo structure:", userInfo); // Debugging ke liye
-//       alert("Token not found. Please login again.");
-//       return;
-//     }
-
-//     // 2. API Call
-//     await axios.delete(
-//       `http://localhost:3000/api/auth/delete-student/${id}`,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`
-//         }
-//       }
-//     );
-
-//     // 3. Update UI
-//     setStudents((prev) => prev.filter((student) => student._id !== id));
-//     alert("Student Deleted Successfully");
-
-//   } catch (error) {
-//     console.error("Delete Error:", error.response?.data || error.message);
-//     const errorMsg = error.response?.data?.message || "Delete Failed";
-//     alert(errorMsg);
-//   }
-// };
+ 
 
 const deleteStudent = async (id) => {
-  // Confirmation box taaki galti se delete na ho jaye
   if (!window.confirm("ARE YOU SURE? Ye student permanently delete ho jayega aur wapas nahi aayega!")) {
     return;
   }
@@ -223,7 +134,6 @@ const deleteStudent = async (id) => {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    // Database se delete hone ke baad UI se bhi hatana zaroori hai
     setStudents((prev) => prev.filter((student) => student._id !== id));
     
     alert("STUDENT ERASED FROM DATABASE");
@@ -241,9 +151,7 @@ const deleteStudent = async (id) => {
   
   return (
     <div className="p-4 md:p-10 bg-[#0a0c10] text-white min-h-screen font-sans">
-          {/* <ToastContainer position="top-right" autoClose={3000} /> */}
 
-      {/* --- TOP BAR --- */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
         <div>
           <h2 className="text-3xl font-black uppercase tracking-tighter italic flex items-center gap-3">
@@ -273,7 +181,6 @@ const deleteStudent = async (id) => {
         </div>
       </div>
 
-      {/* --- DATA TABLE --- */}
       <div className="bg-slate-900/20 border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -292,17 +199,13 @@ const deleteStudent = async (id) => {
                   <div className="font-bold text-slate-200">{s.name}</div>
                   <div className="text-slate-500 text-xs flex items-center gap-1 mt-1"><Mail size={12}/> {s.email}</div>
                 </td>
-                {/* <td className="px-8 py-6">
-                  <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full border border-emerald-500/20">Active Student</span>
-                </td> */}
+               
                 <td className="px-8 py-6">
   {s.isLoggedIn ? (
-    // Agar login hai (Active)
     <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full border border-emerald-500/20">
       Active Student
     </span>
   ) : (
-    // Agar login nahi hai (Inactive)
     <span className="text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 px-3 py-1 rounded-full border border-red-500/20">
       Inactive
     </span>
@@ -323,7 +226,6 @@ const deleteStudent = async (id) => {
         )}
       </div>
 
-      {/* --- POPUP MODAL --- */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-[#0f1218] border border-white/10 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative">

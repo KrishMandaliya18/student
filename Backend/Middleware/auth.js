@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+ const jwt = require('jsonwebtoken');
 const User = require('../Models/User');
 
 // 1. Pehla Middleware: Sirf check karega ki user Login hai ya nahi

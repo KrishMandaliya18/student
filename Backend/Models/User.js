@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-  const bcrypt = require('bcryptjs'); // Step 1: bcryptjs import karein
+  const bcrypt = require('bcryptjs'); 
 
     const userSchema = new mongoose.Schema({
       name: { type: String, required: true },
@@ -18,7 +18,7 @@ const mongoose = require('mongoose');
      role: { type: String, enum: ['student', 'admin'], default: 'student' },
      universityId: { type: String, required: true, unique: true },
      isLoggedIn: { type: Boolean, default: false } ,
-     lastActiveAt: { type: Date, default: Date.now } // <--- Yeh line add karein
+     lastActiveAt: { type: Date, default: Date.now }
 }, { timestamps: true });
    
 

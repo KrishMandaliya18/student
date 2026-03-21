@@ -1,58 +1,74 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { UploadCloud, FileText, Trash2, PlusCircle, ClipboardList, Calendar, ExternalLink, Eye } from 'lucide-react';
+import { UploadCloud, FileText, Trash2, PlusCircle, ClipboardList, Calendar, Eye } from 'lucide-react';
 import { gsap } from 'gsap';
+import axios from 'axios';
 
 const UploadNotes = () => {
   const [activeCategory, setActiveCategory] = useState('Assignments');
   const fileInputRef = useRef(null);
   
-  // Data management with LocalStorage
-  const [materials, setMaterials] = useState(() => {
-    const saved = localStorage.getItem('faculty_materials');
-    // Shuruat mein khali rakha hai jaisa aapne kaha
-    return saved ? JSON.parse(saved) : [];
-  });
+  // State ko empty array se start karein
+const [materials, setMaterials] = useState([]);
+const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    localStorage.setItem('faculty_materials', JSON.stringify(materials));
-    
-    // GSAP animation for list items
-    gsap.fromTo(".file-card", 
-      { opacity: 0, x: 20 }, 
-      { opacity: 1, x: 0, stagger: 0.1, duration: 0.4 }
-    );
-  }, [materials, activeCategory]);
+const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+ useEffect(() => {
+  const fetchMaterials = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/assignments/all', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMaterials(response.data);
+    } catch (error) {
+      console.error("Error fetching materials", error);
+    }
+  };
+  fetchMaterials();
+}, [activeCategory]); // Category badalne par phir se fetch karein
 
   const categories = [
     { name: 'Assignments', icon: <ClipboardList size={18} /> },
-    { name: 'Time Table', icon: <Calendar size={18} /> }
+    { name: 'Time Table', icon: <Calendar size={18} /> },
   ];
+const handleFileChange = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const newFile = {
-        name: file.name,
-        size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        type: activeCategory,
-        url: URL.createObjectURL(file) 
-      };
-      setMaterials([newFile, ...materials]);
-      event.target.value = null; 
-    }
-  };
+  const formData = new FormData();
+  formData.append('file', file); // 'file' wahi naam hai jo backend multer mein hai
+  formData.append('title', file.name); 
+  formData.append('subject', activeCategory); // Category ko subject ki tarah bhej rahe hain
 
-  const deleteFile = (index) => {
-    setMaterials(materials.filter((_, i) => i !== index));
-  };
+  try {
+    setLoading(true);
+    const response = await axios.post(
+      'http://localhost:3000/api/assignments/upload', 
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`
+        }
+      }
+    );
+    
+    // Upload ke baad list update karein
+    setMaterials([response.data.newAssignment, ...materials]);
+    alert("File Uploaded Successfully!");
+  } catch (error) {
+    alert("Upload failed!");
+    console.error(error);
+  } finally {
+    setLoading(false);
+    event.target.value = null;
+  }
+};
 
   const filteredMaterials = materials.filter(m => m.type === activeCategory);
 
   return (
     <div className="h-full flex flex-col space-y-6 font-sans p-2 overflow-hidden">
       
-      {/* Header & Tabs */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase">
           Material <span className="text-emerald-500 text-3xl">Hub</span>
@@ -74,10 +90,8 @@ const UploadNotes = () => {
         </div>
       </div>
 
-      {/* Main Single Page Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
         
-        {/* Left Section: Upload */}
         <div className="flex flex-col space-y-4">
           <input 
             type="file" 
@@ -125,15 +139,14 @@ const UploadNotes = () => {
                     </div>
                     
                     <div className="flex items-center gap-1">
-                      <a 
-                        href={file.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="p-2.5 text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-xl transition-all"
-                        title="View File"
-                      >
-                        <Eye size={18} />
-                      </a>
+                    <a 
+  href={`http://localhost:3000/${file.filePath}`} // Backend static folder ka path
+  target="_blank" 
+  rel="noopener noreferrer"
+  className="..."
+>
+  <Eye size={18} />
+</a>
                       <button 
                         onClick={() => deleteFile(materials.indexOf(file))}
                         className="p-2.5 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"

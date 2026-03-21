@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldCheck,
   ChevronRight,
-  AlertCircle,
-  Bot,
+    Bot,
   Loader2,
 } from "lucide-react";
 import { gsap } from "gsap";
@@ -106,73 +104,6 @@ const Signup = () => {
       setIsLoading(false);
     }
   };
-
-
-  // --- Backend Integration Logic ---
-//   const handleSignup = async (e) => {
-//     e.preventDefault();
-//     setIsLoading(false); // Reset loading state if validation fails
-
-//     // Basic Frontend Validation
-//     if (!formData.email.endsWith("@gmail.com")) {
-//       toast.error("INVALID NEURAL LINK: ONLY @GMAIL.COM ALLOWED", {
-//         style: { background: '#1e1b4b', color: '#f87171', border: '1px solid #f87171' }
-//       });
-//       return;
-//     }
-
-//     setIsLoading(true);
-
-//     try {
-//       // Backend ko bheja jane wala data
-//       const signupData = {
-//         name: formData.name,
-//         email: formData.email,
-//         password: formData.password,
-//         role: role,
-//         enrollmentNumber: formData.id,
-//         secretKey: role === "admin" ? formData.secret : null
-//       };
-
-//       const response = await axios.post("http://localhost:3000/api/auth/signup", signupData);
-// const { token, user } = response.data;
-//      // Success Notification
-// toast.success(`PROFILE CREATED! YOUR ID: ${response.data.user.universityId}`, {
-//   duration: 5000,
-//   style: { background: '#0f172a', color: '#22d3ee', border: '1px solid #22d3ee' },
-//   iconTheme: { primary: '#22d3ee', secondary: '#0f172a' }
-// });
-// // Save Data to LocalStorage
-//   if(user.role === 'admin'){
-// sessionStorage.setItem("admin_token",token);
-// sessionStorage.setItem("admin_Role", user.role);
-
-// sessionStorage.setItem("admin_Name", user.name);
-// // setTimeout(() => navigate('/overview/admindashboard/admin'), 1000);
-//                     }else{
-// sessionStorage.setItem("student_token", token);
-// sessionStorage.setItem("student_Role", user.role);
-// sessionStorage.setItem("student_Name", user.name);
-// // setTimeout(() => navigate('/overview/studentdashboard/dashboard'), 1000);
-//                     } 
-// // Redirect Logic
-// setTimeout(() => {
-//   if (role === "student") {
-//     navigate("/overview/studentdashboard/dashboard");
-//   } else if (role === "admin") {
-//     navigate("/overview/admindashboard/admin");
-//   }
-// }, 2000);
-
-//     } catch (err) {
-//       const errorMessage = err.response?.data?.msg || "SYNCHRONIZATION FAILED: SERVER OFFLINE";
-//       toast.error(errorMessage.toUpperCase(), {
-//         style: { background: '#1e1b4b', color: '#f87171', border: '1px solid #f87171' }
-//       });
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
 
   return (
     <div className="h-screen w-full bg-[#020617] flex items-center justify-center p-6 overflow-hidden relative selection:bg-cyan-500 font-sans">

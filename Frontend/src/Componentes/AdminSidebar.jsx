@@ -1,10 +1,9 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, ClipboardList, UploadCloud, Megaphone, Settings, LogOut, GraduationCap, X } from 'lucide-react';
+import {  Users, ClipboardList, UploadCloud, Megaphone, Settings, GraduationCap, X } from 'lucide-react';
 
 const AdminSidebar = ({ isOpen, setIsOpen }) => {
   const navItems = [
-    // { id: 'dashboard', label: 'Faculty Home', path: 'home', icon: <LayoutDashboard size={20}/> },
     { id: 'admin', label: 'AdminDashboard', path: 'admin', icon: <Users size={20}/> },
     { id: 'attendance', label: 'Attendance', path: 'attendance', icon: <ClipboardList size={20}/> },
     { id: 'materials', label: 'Upload Notes', path: 'materials', icon: <UploadCloud size={20}/> },

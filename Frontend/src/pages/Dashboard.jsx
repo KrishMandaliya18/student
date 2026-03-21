@@ -14,10 +14,8 @@ const Dashboard = () => {
   return (
     <div className="space-y-8 lg:space-y-10 p-2">
       
-      {/* --- TOP SECTION: PERFORMANCE & ATTENDANCE --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* CGPA CARD */}
         <div className="main-card lg:col-span-2 bg-gradient-to-br from-emerald-600 to-emerald-800 p-8 lg:p-10 rounded-[2.5rem] shadow-2xl shadow-emerald-900/20 relative overflow-hidden group border border-white/10">
           <div className="relative z-10">
             <h3 className="text-white/70 font-black tracking-widest uppercase text-[10px] mb-4 flex items-center gap-2">
@@ -39,7 +37,6 @@ const Dashboard = () => {
           <div className="absolute -top-10 -right-10 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
         </div>
 
-        {/* ATTENDANCE CARD */}
         <div className="main-card bg-[#0a0f1c] p-8 rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center text-center shadow-2xl">
           <h3 className="font-black text-slate-500 uppercase text-[10px] tracking-[0.3em] mb-6">Live Attendance</h3>
           <div className="relative w-28 h-28 lg:w-32 lg:h-32 bg-slate-900 rounded-full overflow-hidden border-4 border-slate-800 shadow-2xl ring-8 ring-emerald-500/5">
@@ -53,10 +50,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* --- MIDDLE SECTION: SCHEDULE & TASKS --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        {/* TODAY'S CLASSES */}
         <div className="main-card bg-[#0a0f1c] p-8 rounded-[2.5rem] border border-white/5">
           <div className="flex justify-between items-center mb-6">
              <h3 className="font-black text-white uppercase text-xs tracking-widest flex items-center gap-2">
@@ -85,7 +80,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* PENDING TASKS */}
         <div className="main-card bg-[#0a0f1c] p-8 rounded-[2.5rem] border border-white/5">
           <h3 className="font-black text-white uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
             <BookOpen className="text-emerald-500" size={16} /> Pending Tasks
@@ -109,7 +103,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* --- BOTTOM SECTION: QUICK ACTIONS --- */}
       <div className="main-card bg-[#0a0f1c] p-6 rounded-[2rem] border border-white/5">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
            {[

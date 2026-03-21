@@ -5,15 +5,12 @@ import axios from 'axios';
 
 const AdminHeader = ({ setIsOpen }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  // const [userData, setUserData] = useState({ name: 'Guest', role: 'User' });
   const [adminName, setAdminName] = useState('admin');
   const [adminRole, setAdminRole] = useState('admin');
   const navigate = useNavigate();
   const menuRef = useRef(null);
 
-  // --- useEffect ke andar ka logic update karein ---
 useEffect(() => {
-  // Data load karne ka function
   const loadUserData = () => {
     const storedData = sessionStorage.getItem('userInfo');
     if (storedData) {
@@ -23,21 +20,15 @@ useEffect(() => {
     }
   };
 
-  // 1. Pehli baar load karein
   loadUserData();
 
-  // 2. Custom event listen karein (jab profile update ho)
   window.addEventListener('profileUpdated', loadUserData);
 
-  // Dropdown close logic
   const handleTabClose = () => {
-         // Aapke backend ka URL
          const url = "http://localhost:5000/api/auth/logout-on-close"; 
          
-         // User ki pehchan ke liye email ya ID bhejein
          const data = JSON.stringify({ email: user.email }); 
          
-         // Beacon API ensure karta hai ki request successfully chali jaye
          const blob = new Blob([data], { type: 'application/json' });
          navigator.sendBeacon(url, blob);
      };
@@ -48,64 +39,11 @@ useEffect(() => {
          window.removeEventListener("beforeunload", handleTabClose);
      };
  }, []);
-// useEffect(() => {
-//   // 1. Storage se 'userInfo' nikalna (Kyunki ab hum isi key mein save kar rahe hain)
-//   const storedData = sessionStorage.getItem('userInfo');
 
-//   if (storedData) {
-//     const userInfo = JSON.parse(storedData);
-    
-//     // State update karein
-//     setAdminName(userInfo.name || 'Admin');
-//     setAdminRole(userInfo.role || 'Admin');
-//   }
-
-//   // Dropdown close logic (wahi rahega)
-//   const handleClickOutside = (event) => {
-//     if (menuRef.current && !menuRef.current.contains(event.target)) {
-//       setShowProfileMenu(false);
-//     }
-//   };
-//   document.addEventListener('mousedown', handleClickOutside);
-//   return () => document.removeEventListener('mousedown', handleClickOutside);
-// }, []);
-  // useEffect(() => {
-  //   // 1. LocalStorage se name aur role nikalna
-    
-  //   // Dono keys ko check karo
-  //   const aName = sessionStorage.getItem('admin_Name');
-  //   const aRole = sessionStorage.getItem('admin_Role');
-
-  //   if (aName) {
-  //       setAdminName(aName);
-  //       setAdminRole(aRole || 'Admin');
-  //   }
-
-
-  //   // 2. Agar data exist karta hai toh state update karein
-  //   // if (storedName) {
-  //   //   setUserData({
-  //   //     name: storedName,
-  //   //     role: storedRole || 'User'
-  //   //   });
-  //   // }
-
-  //   // Dropdown close logic
-  //   const handleClickOutside = (event) => {
-  //     if (menuRef.current && !menuRef.current.contains(event.target)) {
-  //       setShowProfileMenu(false);
-  //     }
-  //   };
-  //   document.addEventListener('mousedown', handleClickOutside);
-  //   return () => document.removeEventListener('mousedown', handleClickOutside);
-  // }, []);
-
-  // Initials ke liye Avatar URL (UI Avatars service)
   const avatarUrl = `https://ui-avatars.com/api/?name=${adminName}&background=10b981&color=fff&bold=true`;
 
   const handleLogout = async () => {
     try {
-        // Correct key: "userInfo" dhoondein
         const storedInfo = sessionStorage.getItem("userInfo");
         if (!storedInfo) {
             window.location.href = "/login";
@@ -115,14 +53,12 @@ useEffect(() => {
         const userData = JSON.parse(storedInfo);
         const token = sessionStorage.getItem("token");
 
-        // Backend call: userId bhejna zaroori hai status false karne ke liye
-        // backend controller mein user._id ko humne 'id' key mein bheja hai
+      
         await axios.post("http://localhost:3000/api/auth/logout", 
             { userId: userData.id }, 
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // Frontend clear
         sessionStorage.clear();
         window.location.href = "/login";
     } catch (error) {
@@ -131,45 +67,6 @@ useEffect(() => {
         window.location.href = "/login";
     }
 };
-// const handleLogout = async () => {
-//     try {
-//         // Correct key: "userInfo" dhoondein
-//         const storedInfo = sessionStorage.getItem("userInfo");
-//         if (!storedInfo) {
-//             window.location.href = "/login";
-//             return;
-//         }
-
-//         const userData = JSON.parse(storedInfo);
-//         const token = sessionStorage.getItem("token");
-
-//         // Backend call: userId bhejna zaroori hai status false karne ke liye
-//         // backend controller mein user._id ko humne 'id' key mein bheja hai
-//         await axios.post("http://localhost:3000/api/auth/logout", 
-//             { userId: userData.id }, 
-//             { headers: { Authorization: `Bearer ${token}` } }
-//         );
-
-//         // Frontend clear
-//         sessionStorage.clear();
-//         window.location.href = "/login";
-//     } catch (error) {
-//         console.error("Logout failed", error);
-//         sessionStorage.clear();
-//         window.location.href = "/login";
-//     }
-// };
-  // const handleLogout = async () => {
-  //   sessionStorage.clear();
-  //   try {
-  //     await axios.post('http://localhost:3000/api/auth/logout');
-  //   } catch (error) {
-  //     console.error("Logout error", error);
-  //   } finally {
-  //     sessionStorage.clear();
-  //     navigate('/login');
-  //   }
-  // };
 
   return (
     <header className="h-24 px-6 lg:px-10 flex items-center justify-between sticky top-0 bg-[#020617]/80 backdrop-blur-lg z-40 border-b border-white/5">
@@ -187,7 +84,6 @@ useEffect(() => {
       <div className="flex items-center gap-4 lg:gap-6">
        
 
-        {/* Profile Dropdown */}
         <div className="relative" ref={menuRef}>
           <div 
             onClick={() => setShowProfileMenu(!showProfileMenu)} 
