@@ -26,7 +26,7 @@ const Settings = () => {
           headers: { Authorization: `Bearer ${userInfo.token}` }
         };
 
-        const { data } = await axios.get('http://localhost:3000/api/auth/profile', config);
+        const { data } = await axios.get('/api/auth/profile', config);
         
         setFormData({
           name: data.name,
@@ -57,7 +57,7 @@ const Settings = () => {
         }
       };
 
-      const { data } = await axios.put('http://localhost:3000/api/auth/profile/update', { 
+      const { data } = await axios.put('/api/auth/profile/update', { 
         name: formData.name 
       }, config);         
       
@@ -91,7 +91,7 @@ const Settings = () => {
          const token = sessionStorage.getItem("token");
  
         
-         await axios.post("http://localhost:3000/api/auth/logout", 
+         await axios.post("/api/auth/logout", 
              { userId: userData.id }, 
              { headers: { Authorization: `Bearer ${token}` } }
          );

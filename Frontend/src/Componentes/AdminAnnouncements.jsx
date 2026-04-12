@@ -4,16 +4,18 @@ import axios from 'axios';
 
 const AdminAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("GENERAL");
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
   
   const [isEditing, setIsEditing] = useState(null);
   const [viewingNotice, setViewingNotice] = useState(null);
-  const [editData, setEditData] = useState({ title: "", content: "" });
+  const [editData, setEditData] = useState({ title: "", content: "", category: "GENERAL" });
 
   const fetchAnnouncements = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/notices/all");
+      const res = await axios.get("/api/notices/all");
       setAnnouncements(res.data);
     } catch (err) { console.error(err); }
   };
@@ -21,31 +23,35 @@ const AdminAnnouncements = () => {
   useEffect(() => { fetchAnnouncements(); }, []);
 
   const handlePost = async () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || !title.trim()) {
+      alert("Title and Content are required!");
+      return;
+    }
     try {
       setLoading(true);
-      await axios.post("http://localhost:3000/api/notices/add", {
-        title: "Campus Update",
+      await axios.post("/api/notices/add", {
+        title,
         content: inputText,
-        category: "GENERAL"
+        category
       });
       setInputText("");
+      setTitle("");
       fetchAnnouncements();
-    } catch (err) { alert("Post failed!"); } 
+    } catch (err) { alert("Post failed! Check if you are authorized."); } 
     finally { setLoading(false); }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure? This will delete the notice for all students.")) return;
     try {
-      await axios.delete(`http://localhost:3000/api/notices/${id}`);
+      await axios.delete(`/api/notices/${id}`);
       setAnnouncements(announcements.filter(item => item._id !== id));
     } catch (err) { console.error(err); }
   };
 
   const handleUpdate = async (id) => {
     try {
-      await axios.put(`http://localhost:3000/api/notices/${id}`, editData);
+      await axios.put(`/api/notices/${id}`, editData);
       setIsEditing(null);
       fetchAnnouncements();
     } catch (err) { alert("Update failed!"); }
@@ -54,22 +60,45 @@ const AdminAnnouncements = () => {
   return (
     <div className="max-w-5xl space-y-6">
       {/* Create Announcement Section (Green Combo) */}
-      <div className="bg-[#0f172a]/60 p-6 rounded-[1.5rem] border border-emerald-500/20 shadow-xl">
+      <div className="bg-[#0f172a]/60 p-6 rounded-[2.5rem] border border-emerald-500/20 shadow-xl space-y-4">
         <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2 uppercase tracking-widest">
           <Megaphone size={20} className="text-emerald-500" /> Create Announcement
         </h3>
+        
+        <div className="flex flex-col md:flex-row gap-4">
+          <input 
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Announcement Title (e.g., Fees Reminder)"
+            className="flex-1 bg-slate-900/80 border border-white/5 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-emerald-500 transition-all font-bold"
+          />
+          <select 
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="bg-slate-900/80 border border-white/5 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-emerald-500 transition-all font-bold min-w-[180px]"
+          >
+            <option value="GENERAL">General Notice</option>
+            <option value="FEES_PENDING">Fees Pending</option>
+            <option value="EXAM">Exam News</option>
+            <option value="ACADEMIC">Academic Update</option>
+            <option value="EVENT">Campus Event</option>
+          </select>
+        </div>
+
         <textarea 
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Write your campus update here..." 
-          className="w-full bg-slate-900/80 border border-white/5 rounded-2xl p-4 text-sm text-white min-h-[100px] focus:outline-none focus:border-emerald-500 transition-all resize-none shadow-inner"
+          className="w-full bg-slate-900/80 border border-white/5 rounded-2xl p-4 text-sm text-white min-h-[120px] focus:outline-none focus:border-emerald-500 transition-all resize-none shadow-inner"
         ></textarea>
-        <div className="flex justify-between items-center mt-4">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2 italic">Broadcast to Smart Campus Dashboard</span>
+        
+        <div className="flex justify-between items-center mt-4 pt-2 border-t border-white/5">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2 italic">Official Broadcast to Student Dashboard</span>
           <button 
             onClick={handlePost}
             disabled={loading}
-            className="px-8 py-2.5 bg-emerald-600 text-white text-xs rounded-xl font-black flex items-center gap-2 hover:bg-emerald-500 transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-emerald-900/40"
+            className="px-8 py-3 bg-emerald-600 text-white text-xs rounded-xl font-black flex items-center gap-2 hover:bg-emerald-500 transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-emerald-900/40"
           >
             {loading ? "SENDING..." : "POST NOW"} <Send size={14} />
           </button>

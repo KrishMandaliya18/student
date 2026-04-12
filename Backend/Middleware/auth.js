@@ -1,4 +1,4 @@
- const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const User = require('../Models/User');
 
 // 1. Pehla Middleware: Sirf check karega ki user Login hai ya nahi
@@ -43,5 +43,13 @@ const isAdmin = (req, res, next) => {
   }
 };
 
+const isStaff = (req, res, next) => {
+  if (req.user && ['admin', 'teacher', 'hod'].includes(req.user.role)) {
+    next();
+  } else {
+    res.status(403).json({ message: 'Access Denied: Staff only' });
+  }
+};
+
 // Dono ko export karein
-module.exports = { protect, isAdmin };
+module.exports = { protect, isAdmin, isStaff };

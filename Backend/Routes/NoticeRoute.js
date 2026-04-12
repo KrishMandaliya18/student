@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { createNotice, getNotices,deleteNotice,updateNotice } = require ('../Controllers/NoticeController');
+const { protect, isStaff } = require('../Middleware/auth');
 
-// Admin post karega
-router.post('/add', createNotice);
+// Admin, Teacher, HOD post karega
+router.post('/add', protect, isStaff, createNotice);
 
 // Student fetch karega
 router.get('/all', getNotices);

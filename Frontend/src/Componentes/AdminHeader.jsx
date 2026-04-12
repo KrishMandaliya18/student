@@ -54,7 +54,7 @@ useEffect(() => {
         const token = sessionStorage.getItem("token");
 
       
-        await axios.post("http://localhost:3000/api/auth/logout", 
+        await axios.post("/api/auth/logout", 
             { userId: userData.id }, 
             { headers: { Authorization: `Bearer ${token}` } }
         );

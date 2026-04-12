@@ -10,8 +10,8 @@ import { gsap } from "gsap";
 import axios from "axios"; // 1. Axios Import
 import toast, { Toaster } from "react-hot-toast"; // 2. Toast Import
 
-const Login = () => {
-  const [role, setRole] = useState("student");
+const Login = ({ forcedRole }) => {
+  const [role, setRole] = useState(forcedRole || "student");
   const [formData, setFormData] = useState({
     email: "",
     universityId: "",
@@ -27,6 +27,12 @@ const Login = () => {
     { id: "student", label: "Student" },
     { id: "admin", label: "Admin" },
   ];
+
+  useEffect(() => {
+    if (forcedRole) {
+      setRole(forcedRole);
+    }
+  }, [forcedRole]);
 
   useEffect(() => {
     gsap.fromTo(
@@ -51,7 +57,7 @@ const Login = () => {
 
     try {
       // API call to Backend
-      const response = await axios.post("http://localhost:3000/api/auth/login", {
+      const response = await axios.post("/api/auth/login", {
         email: formData.email,
         password: formData.password,
         role: role,
@@ -87,12 +93,24 @@ const Login = () => {
           navigate("/overview/studentdashboard/dashboard");
         } else if (role === "admin") {
           navigate("/overview/admindashboard/admin");
+        } else if (role === "teacher") {
+          navigate("/overview/teacherdashboard/teacher");
+        } else if (role === "hod") {
+          navigate("/overview/hoddashboard/hod");
         }
       }, 1500);
 
     } catch (err) {
-      const errorMessage = err.response?.data?.msg || "CONNECTION REFUSED: SYSTEM OFFLINE";
+      console.error("DEBUG - Login Error Object:", err);
+      // Construct a verbose error message
+      const errorMessage = 
+        err.response?.data?.msg || 
+        (typeof err.response?.data === 'string' && err.response.data.trim() !== "" ? err.response.data : 
+        (err.response ? `ACCESS DENIED: HTTP ${err.response.status}` : 
+        (err.message || "CONNECTION REFUSED: UNKNOWN SYSTEM CONFLICT")));
+      
       toast.error(errorMessage.toUpperCase(), {
+        duration: 8000,
         style: { background: '#1e1b4b', color: '#f87171', border: '1px solid #f87171' }
       });
     } finally {
@@ -138,30 +156,34 @@ const Login = () => {
         {/* Right Side (Form) */}
         <div className="p-10 md:p-14 bg-black/40 flex flex-col justify-center">
           <div className="flex justify-between items-center mb-10">
-            <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic">Login</h2>
+            <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic">
+              {role.toUpperCase()} Portal
+            </h2>
             <Link to="/signup" className="text-cyan-400 text-[11px] font-black tracking-widest uppercase underline underline-offset-8">Register</Link>
           </div>
 
-          {/* Role Switcher */}
-          <div className="flex gap-1.5 mb-8 p-1.5 bg-white/5 rounded-2xl border border-white/10">
-            {roles.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => {
-                  setRole(r.id);
-                  setFormData({ ...formData, secret: "", universityId: "" }); // Clear fields when switching roles
-                }}
-                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all duration-300 ${
-                  role === r.id
-                    ? "bg-cyan-500 text-black shadow-lg shadow-cyan-500/30"
-                    : "text-gray-500 hover:text-white"
-                }`}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
+          {/* Role Switcher - Hidden if forcedRole is provided */}
+          {!forcedRole && (
+            <div className="flex gap-1.5 mb-8 p-1.5 bg-white/5 rounded-2xl border border-white/10">
+              {roles.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => {
+                    setRole(r.id);
+                    setFormData({ ...formData, secret: "", universityId: "" }); // Clear fields when switching roles
+                  }}
+                  className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all duration-300 ${
+                    role === r.id
+                      ? "bg-cyan-500 text-black shadow-lg shadow-cyan-500/30"
+                      : "text-gray-500 hover:text-white"
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <input
@@ -222,5 +244,6 @@ const Login = () => {
     </div>
   );
 };
+
 
 export default Login;

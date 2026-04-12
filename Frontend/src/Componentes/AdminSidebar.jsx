@@ -1,15 +1,19 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import {  Users, ClipboardList, UploadCloud, Megaphone, Settings, GraduationCap, X } from 'lucide-react';
+import {  Users, ClipboardList, UploadCloud, Megaphone, Settings, GraduationCap, X, IndianRupee } from 'lucide-react';
 
 const AdminSidebar = ({ isOpen, setIsOpen }) => {
+  const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
+  const role = userInfo.role || 'staff';
+
   const navItems = [
-    { id: 'admin', label: 'AdminDashboard', path: 'admin', icon: <Users size={20}/> },
+    { id: 'admin', label: `${role.charAt(0).toUpperCase() + role.slice(1)} Hub`, path: role === 'admin' ? '/overview/admindashboard/admin' : role === 'teacher' ? '/overview/teacherdashboard/teacher' : '/overview/hoddashboard/hod', icon: <Users size={20}/> },
     { id: 'attendance', label: 'Attendance', path: 'attendance', icon: <ClipboardList size={20}/> },
     { id: 'materials', label: 'Upload Notes', path: 'materials', icon: <UploadCloud size={20}/> },
     { id: 'notice', label: 'Announcements', path: 'notice', icon: <Megaphone size={20}/> },
+    { id: 'fees', label: 'Fees Management', path: 'fees', icon: <IndianRupee size={20}/>, roles: ['admin'] },
     { id: 'settings', label: 'Settings', path: 'settings', icon: <Settings size={20}/> },
-  ];
+  ].filter(item => !item.roles || item.roles.includes(role));
 
   return (
     <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#0f172a]/95 backdrop-blur-3xl border-r border-white/5 flex flex-col p-6 transition-transform duration-300 lg:relative lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
@@ -18,7 +22,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
           <div className="bg-gradient-to-br from-emerald-500 to-indigo-600 p-2.5 rounded-2xl">
             <GraduationCap size={26} className="text-white" />
           </div>
-          <h2 className="text-xl font-black text-white italic">Admin<span className="text-emerald-500">Hub</span></h2>
+          <h2 className="text-xl font-black text-white italic">{role.toUpperCase().charAt(0) + role.slice(1)}<span className="text-emerald-500">Hub</span></h2>
         </div>
         <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-slate-400"><X size={24} /></button>
       </div>

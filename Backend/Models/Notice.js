@@ -12,12 +12,20 @@ const noticeSchema = new mongoose.Schema({
     required: true
   },
   category: {
-    type: String, // Jaise: 'EXAM', 'EVENT', 'GENERAL'
+    type: String, // Jaise: 'EXAM', 'EVENT', 'GENERAL', 'FEES_PENDING', 'ACADEMIC'
     default: 'GENERAL'
   },
-  postedBy: {
+  senderRole: {
     type: String,
-    default: 'Admin'
+    enum: ['admin', 'teacher', 'hod'],
+    default: 'admin'
+  },
+  senderName: {
+    type: String
+  },
+  senderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
   createdAt: {
     type: Date,

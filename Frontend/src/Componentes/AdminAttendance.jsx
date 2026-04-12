@@ -49,7 +49,7 @@ const AdminAttendance = () => {
     const fetchStudents = async () => {
       try {
         setLoading(true); // Backend se student list fetch karna
-        const res = await axios.get("http://localhost:3000/api/auth/students"); // Data ko proper format mein convert karna
+        const res = await axios.get("/api/auth/students"); // Data ko proper format mein convert karna
         const formattedData = res.data.map((user) => ({
           id: user.universityId || "N/A", // user model se universityId lena
           name: user.name,
@@ -123,7 +123,7 @@ const AdminAttendance = () => {
       .attendance[selectedYear]?.[selectedMonth]?.[day];
 
     try {
-      await axios.post("http://localhost:3000/api/attendance/toggle", {
+      await axios.post("/api/attendance/toggle", {
         universityId: studentId,
         day,
         month: selectedMonth,

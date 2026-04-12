@@ -7,7 +7,15 @@ const Notice = require('../Models/Notice');
 exports.createNotice = async (req, res) => {
     try {
         const { title, content, category } = req.body;
-        const newNotice = new Notice({ title, content, category });
+        // req.user comes from protect middleware
+        const newNotice = new Notice({ 
+            title, 
+            content, 
+            category: category || 'GENERAL',
+            senderRole: req.user.role,
+            senderName: req.user.name,
+            senderId: req.user._id
+        });
         await newNotice.save();
         res.status(201).json({ message: "Announcement posted successfully!", newNotice });
     } catch (error) {

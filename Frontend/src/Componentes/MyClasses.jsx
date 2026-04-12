@@ -7,7 +7,7 @@ import axios from 'axios';
 import { toast,ToastContainer } from 'react-toastify'; 
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = "http://localhost:3000"; 
+const SOCKET_URL = ""; 
 const socket = io(SOCKET_URL);
 const MyClasses = () => {
   const [students, setStudents] = useState([]);
@@ -26,7 +26,7 @@ const MyClasses = () => {
   }
 
   try {
-    const res = await axios.get('http://localhost:3000/api/auth/all-students', {
+    const res = await axios.get('/api/auth/all-students', {
       headers: { 
         'Authorization': `Bearer ${token}` 
       }
@@ -91,7 +91,7 @@ const handleSave = async (e) => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
         
         if (formData._id) {
-            await axios.put(`http://localhost:3000/api/auth/update-student/${formData._id}`, {
+            await axios.put(`/api/auth/update-student/${formData._id}`, {
                 name: formData.name,
                 universityId: formData.universityId,
                 email: formData.email,
@@ -107,7 +107,7 @@ const handleSave = async (e) => {
                 role: 'student',
                 enrollmentNumber: formData.universityId
             };
-            await axios.post('http://localhost:3000/api/auth/signup', signupData, config);
+            await axios.post('/api/auth/signup', signupData, config);
             toast.success("New student enrolled!");
         }
 
@@ -130,7 +130,7 @@ const deleteStudent = async (id) => {
     const userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
     const token = userInfo?.token;
 
-    await axios.delete(`http://localhost:3000/api/auth/delete-student/${id}`, {
+    await axios.delete(`/api/auth/delete-student/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 

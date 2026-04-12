@@ -57,7 +57,7 @@ const Header = ({ setIsOpen }) => {
       
       if (storedInfo && token) {
         const userData = JSON.parse(storedInfo);
-        await axios.post("http://localhost:3000/api/auth/logout", 
+        await axios.post("/api/auth/logout", 
           { userId: userData.id || userData._id }, 
           { headers: { Authorization: `Bearer ${token}` } }
         );
