@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, isStaff } = require('../Middleware/auth');
+const { createNotice, getNotices, deleteNotice, updateNotice } = require('../Controllers/NoticeController');
 
 // Admin, Teacher, HOD post karega
 router.post('/add', protect, isStaff, createNotice);
