@@ -5,7 +5,7 @@ import axios from 'axios';
 import { 
   LayoutDashboard, ClipboardList, CheckCircle, 
   FileText, Megaphone, Settings, 
-  LogOut, GraduationCap, X 
+  LogOut, GraduationCap, X, IndianRupee 
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -31,7 +31,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         const token = sessionStorage.getItem("token");
 
       
-        await axios.post("http://localhost:3000/api/auth/logout", 
+        await axios.post("/api/auth/logout", 
             { userId: userData.id }, 
             { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -49,6 +49,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { path: 'assignments', label: 'Assignments', icon: <ClipboardList size={20}/> },
     { path: 'attendance', label: 'Attendance', icon: <CheckCircle size={20}/> },
     { path: 'exams', label: 'Exams', icon: <FileText size={20}/> },
+    { path: 'fees', label: 'Fees', icon: <IndianRupee size={20}/> },
     { path: 'notice', label: 'Notice Board', icon: <Megaphone size={20}/> },
     { path: 'settings', label: 'Settings', icon: <Settings size={20}/> },
   ];

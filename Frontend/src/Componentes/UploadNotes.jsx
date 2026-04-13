@@ -15,7 +15,7 @@ const token = localStorage.getItem('token') || sessionStorage.getItem('token');
  useEffect(() => {
   const fetchMaterials = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/assignments/all', {
+      const response = await axios.get('/api/assignments/all', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMaterials(response.data);
@@ -42,7 +42,7 @@ const handleFileChange = async (event) => {
   try {
     setLoading(true);
     const response = await axios.post(
-      'http://localhost:3000/api/assignments/upload', 
+      '/api/assignments/upload', 
       formData,
       {
         headers: {
@@ -140,7 +140,7 @@ const handleFileChange = async (event) => {
                     
                     <div className="flex items-center gap-1">
                     <a 
-  href={`http://localhost:3000/${file.filePath}`} // Backend static folder ka path
+  href={`/${file.filePath}`} // Backend static folder ka path
   target="_blank" 
   rel="noopener noreferrer"
   className="..."

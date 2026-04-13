@@ -16,12 +16,20 @@ exports.signup = async (req, res) => {
 
         // 2. Role-based Logic
         if (role === 'admin') {
-            // Admin validation
             if (secretKey !== process.env.ADMIN_SECRET) {
                 return res.status(403).json({ msg: "Invalid Secret Key for Admin" });
             }
-            // Auto-generate Admin ID
             universityId = `ADM-${Math.floor(1000 + Math.random() * 9000)}`;
+        } else if (role === 'hod') {
+            if (secretKey !== process.env.HOD_SECRET) {
+                return res.status(403).json({ msg: "Invalid Secret Key for HOD" });
+            }
+            universityId = `HOD-${Math.floor(1000 + Math.random() * 9000)}`;
+        } else if (role === 'teacher') {
+            if (secretKey !== process.env.TEACHER_SECRET) {
+                return res.status(403).json({ msg: "Invalid Secret Key for Teacher" });
+            }
+            universityId = `TCH-${Math.floor(1000 + Math.random() * 9000)}`;
         } else {
             // Student validation: Enrollment Number must be present
             if (!enrollmentNumber || enrollmentNumber.trim() === "") {
@@ -79,7 +87,7 @@ exports.signup = async (req, res) => {
 
     } catch (err) {
         console.error("Signup Error:", err.message);
-        res.status(500).send("Server Error: " + err.message);
+        res.status(500).json({ msg: "Server Error: " + err.message });
     }
 };
 

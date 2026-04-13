@@ -15,8 +15,9 @@ const mongoose = require('mongoose');
          required: true,
          minlength: 6
        },
-     role: { type: String, enum: ['student', 'admin'], default: 'student' },
+     role: { type: String, enum: ['student', 'admin', 'teacher', 'hod'], default: 'student' },
      universityId: { type: String, required: true, unique: true },
+     department: { type: String }, 
      isLoggedIn: { type: Boolean, default: false } ,
      lastActiveAt: { type: Date, default: Date.now }
 }, { timestamps: true });

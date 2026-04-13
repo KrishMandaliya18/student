@@ -3,7 +3,7 @@ import { CheckCircle, XCircle, Clock, Calendar as CalendarIcon, ChevronDown } fr
 import { io } from 'socket.io-client';
 import axios from 'axios';
 
-const socket = io('http://localhost:3000');
+const socket = io('');
 
 const Attendance = () => {
   const [attendanceLogs, setAttendanceLogs] = useState([]);
@@ -33,7 +33,7 @@ const Attendance = () => {
         const currentUniversityId = userData?.universityId;
 
         if (currentUniversityId) {
-          const res = await axios.get(`http://localhost:3000/api/attendance/${currentUniversityId}`);
+          const res = await axios.get(`/api/attendance/${currentUniversityId}`);
 
           const currentUIIndex = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(selectedMonth.split(' ')[0]);
           const currentYear = parseInt(selectedMonth.split(' ')[1]);

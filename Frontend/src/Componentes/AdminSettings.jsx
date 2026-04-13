@@ -29,7 +29,7 @@ useEffect(() => {
         headers: { Authorization: `Bearer ${userInfo.token}` }
       };
 
-      const { data } = await axios.get('http://localhost:3000/api/auth/profile', config);
+      const { data } = await axios.get('/api/auth/profile', config);
       
       setFormData({
         name: data.name,
@@ -61,7 +61,7 @@ useEffect(() => {
       }
     };
 
-    const { data } = await axios.put('http://localhost:3000/api/auth/profile/update', formData, config);         
+    const { data } = await axios.put('/api/auth/profile/update', formData, config);         
     
     const updatedInfo = { ...userInfo, name: data.name, email: data.email };
     sessionStorage.setItem('userInfo', JSON.stringify(updatedInfo));
@@ -99,7 +99,7 @@ useEffect(() => {
         const token = sessionStorage.getItem("token");
 
     
-        await axios.post("http://localhost:3000/api/auth/logout", 
+        await axios.post("/api/auth/logout", 
             { userId: userData.id }, 
             { headers: { Authorization: `Bearer ${token}` } }
         );

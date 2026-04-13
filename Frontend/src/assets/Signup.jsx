@@ -10,8 +10,8 @@ import { gsap } from "gsap";
 import axios from "axios"; // 1. Axios Import
 import toast, { Toaster } from "react-hot-toast"; // 2. Toast Import
 
-const Signup = () => {
-  const [role, setRole] = useState("student");
+const Signup = ({ forcedRole }) => {
+  const [role, setRole] = useState(forcedRole || "student");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -28,6 +28,12 @@ const Signup = () => {
     { id: "student", label: "Student" },
     { id: "admin", label: "Admin" },
   ];
+
+  useEffect(() => {
+    if (forcedRole) {
+      setRole(forcedRole);
+    }
+  }, [forcedRole]);
 
   useEffect(() => {
     gsap.fromTo(
@@ -61,7 +67,7 @@ const Signup = () => {
         secretKey: role === "admin" ? formData.secret : null
       };
 
-      const response = await axios.post("http://localhost:3000/api/auth/signup", signupData);
+      const response = await axios.post("/api/auth/signup", signupData);
       const { token, user } = response.data;
 
       // --- NEW LOGIC: Unified Object for Storage ---
@@ -92,12 +98,24 @@ const Signup = () => {
           navigate("/overview/studentdashboard/dashboard");
         } else if (role === "admin") {
           navigate("/overview/admindashboard/admin");
+        } else if (role === "teacher") {
+          navigate("/overview/teacherdashboard/teacher");
+        } else if (role === "hod") {
+          navigate("/overview/hoddashboard/hod");
         }
       }, 2000);
 
     } catch (err) {
-      const errorMessage = err.response?.data?.msg || "SYNCHRONIZATION FAILED: SERVER OFFLINE";
+      console.error("DEBUG - Signup Error Object:", err);
+      // Construct a highly descriptive error message
+      const errorMessage = 
+        err.response?.data?.msg || 
+        (typeof err.response?.data === 'string' && err.response.data.trim() !== "" ? err.response.data : 
+        (err.response ? `SERVER ERROR: HTTP ${err.response.status}` : 
+        (err.message || "SYSTEM OFFLINE: UNABLE TO REACH SERVER")));
+      
       toast.error(errorMessage.toUpperCase(), {
+        duration: 8000,
         style: { background: '#1e1b4b', color: '#f87171', border: '1px solid #f87171' }
       });
     } finally {
@@ -143,30 +161,34 @@ const Signup = () => {
         {/* Right Side (Signup Form) */}
         <div className="p-10 md:p-14 bg-black/40 flex flex-col justify-center">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter">Signup</h2>
+            <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter">
+              {role.toUpperCase()} Signup
+            </h2>
             <Link to="/login" className="text-cyan-400 text-[11px] font-black tracking-widest uppercase underline underline-offset-8">Login</Link>
           </div>
 
-          {/* Role Switcher */}
-          <div className="flex gap-1.5 mb-8 p-1.5 bg-white/5 rounded-2xl border border-white/10">
-            {roles.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => {
-                  setRole(r.id);
-                  setFormData({...formData, id: "", secret: ""}); // Reset role specific fields
-                }}
-                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all duration-300 ${
-                  role === r.id 
-                    ? "bg-cyan-500 text-black shadow-lg shadow-cyan-500/30" 
-                    : "text-gray-500 hover:text-white"
-                }`}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
+          {/* Role Switcher - Hidden if forcedRole is provided */}
+          {!forcedRole && (
+            <div className="flex gap-1.5 mb-8 p-1.5 bg-white/5 rounded-2xl border border-white/10">
+              {roles.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => {
+                    setRole(r.id);
+                    setFormData({...formData, id: "", secret: ""}); // Reset role specific fields
+                  }}
+                  className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all duration-300 ${
+                    role === r.id 
+                      ? "bg-cyan-500 text-black shadow-lg shadow-cyan-500/30" 
+                      : "text-gray-500 hover:text-white"
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <form onSubmit={handleSignup} className="space-y-4 overflow-y-auto max-h-[450px] pr-2 custom-scrollbar">
             <input

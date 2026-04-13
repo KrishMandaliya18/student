@@ -17,7 +17,7 @@ const Assignments = () => {
     const fetchTasks = async () => {
       try {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const res = await axios.get('http://localhost:3000/api/assignments/all', {
+        const res = await axios.get('/api/assignments/all', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setTasks(res.data);
@@ -105,7 +105,7 @@ const Assignments = () => {
                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Ready to Download</p>
                     </div>
                     <a 
-                      href={`http://localhost:3000/${t.filePath}`} 
+                      href={`/${t.filePath}`} 
                       target="_blank" 
                       rel="noreferrer"
                       className="group/btn flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-900/20 transition-all hover:-translate-y-1"
