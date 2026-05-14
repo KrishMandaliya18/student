@@ -49,6 +49,6 @@ exports.getStudentAttendance = async (req, res) => {
         res.status(200).json({ data: attendanceRecords });
     } catch (error) {
         console.error("Get Attendance Error:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
+        res.status(500).js ,on({ message: "Server error", error: error.message });
     }
 };

@@ -7,7 +7,7 @@ import Layout from "./pages/Layout";
 import Dashboard from "./pages/Dashboard";
 import Assignments from "./pages/Assignments";
 import Attendance from "./pages/Attendance";
-import Exams from "./pages/Exams";
+// import Exams from "./pages/Exams";
 import NoticeBoard from "./pages/NoticeBoard";
 import Settings from "./pages/Settings";
 import Fees from "./pages/Fees";
@@ -64,7 +64,7 @@ function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="assignments" element={<Assignments />} />
         <Route path="attendance" element={<Attendance />} />
-        <Route path="exams" element={<Exams />} />
+        {/* <Route path="exams" element={<Exams />} /> */}
         <Route path="notice" element={<NoticeBoard />} />
         <Route path="fees" element={<Fees />} />
         <Route path="settings" element={<Settings />} />

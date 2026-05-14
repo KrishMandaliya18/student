@@ -1,5 +1,6 @@
 const User = require('../Models/User'); 
 const bcrypt = require('bcryptjs');
+const Attendance = require('../Models/Attendance'); // <--- Yeh line add karein
 const jwt = require('jsonwebtoken');
 
 
@@ -302,20 +303,22 @@ exports.deleteStudentByAdmin = async (req, res) => {
   try {
     const studentId = req.params.id;
 
-    // 1. Check karein ki student exist karta hai
+    // 1. Student ko dhoondhein (universityId nikalne ke liye)
     const student = await User.findById(studentId);
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // 2. AGAR DUSRE COLLECTIONS HAIN (Optional Logic)
-    // await Marks.deleteMany({ studentId: studentId });
-    // await Attendance.deleteMany({ studentId: studentId });
+    const universityId = student.universityId;
 
-    // 3. Database se permanently remove karein
+    // 2. Attendance collection se us student ka saara data delete karein
+    // Kyunki aapka Attendance schema universityId use kar raha hai ref ke liye
+    await Attendance.deleteMany({ universityId: universityId });
+
+    // 3. User collection se permanently remove karein
     await User.findByIdAndDelete(studentId);
 
-    res.json({ success: true, message: 'Student permanently removed from the system' });
+    res.json({ success: true, message: 'Student and their attendance record removed permanently' });
   } catch (error) {
     res.status(500).json({ message: "Server Error: " + error.message });
   }

@@ -9,7 +9,18 @@ const AdminFees = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ title: '', amount: '', dueDate: '', description: '' });
   const [viewingScreenshot, setViewingScreenshot] = useState(null);
-
+// axios.interceptors.request.use(
+//   (config) => {
+//     const token = sessionStorage.getItem('token'); // Check if it's session or local
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
+//     return config;
+//   },
+//   (error) => {
+//     return Promise.reject(error);
+//   }
+// );
   const fetchFees = async () => {
     try {
       const res = await axios.get("/api/fees/all");

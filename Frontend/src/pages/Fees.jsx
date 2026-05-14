@@ -12,9 +12,23 @@ const Fees = () => {
   const [selectedFee, setSelectedFee] = useState(null);
   const [file, setFile] = useState(null);
 
+// Ye pure project ke liye ek baar set kar do
+axios.interceptors.request.use(
+  (config) => {
+    const token = sessionStorage.getItem('token'); 
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
   const fetchData = async () => {
     try {
       setLoading(true);
+    const config = { headers: { Authorization: `Bearer ${token}` } };
       const [feesRes, paymentsRes] = await Promise.all([
         axios.get("/api/fees/all"),
         axios.get("/api/fees/my-payments")

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
+import { CheckCircle, XCircle, Calendar as CalendarIcon, ChevronDown, Activity } from 'lucide-react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 
@@ -34,12 +34,18 @@ const Attendance = () => {
 
         if (currentUniversityId) {
           const res = await axios.get(`/api/attendance/${currentUniversityId}`);
-
-          const currentUIIndex = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(selectedMonth.split(' ')[0]);
+          
+          const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+          const currentUIIndex = monthNames.indexOf(selectedMonth.split(' ')[0]);
           const currentYear = parseInt(selectedMonth.split(' ')[1]);
 
+          // UPDATE: Sirf wahi data rakho jo Present ya Absent ho
           const filteredData = res.data.data
-            .filter(log => log.month === currentUIIndex && log.year === currentYear)
+            .filter(log => 
+              log.month === currentUIIndex && 
+              log.year === currentYear && 
+              (log.status === "Present" || log.status === "Absent") // Status check added
+            )
             .map(log => ({ ...log, method: "System Record" }))
             .sort((a, b) => b.day - a.day);
 
@@ -54,7 +60,6 @@ const Attendance = () => {
     fetchAttendance();
   }, [selectedMonth]);
 
-
   useEffect(() => {
     const userData = JSON.parse(sessionStorage.getItem('userInfo'));
     const currentUniversityId = userData?.universityId;
@@ -62,55 +67,58 @@ const Attendance = () => {
     if (currentUniversityId) {
       const eventName = `attendanceUpdate_${currentUniversityId}`;
       socket.on(eventName, (data) => {
-
-        const currentUIIndex = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(selectedMonth.split(' ')[0]);
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const currentUIIndex = monthNames.indexOf(selectedMonth.split(' ')[0]);
         const currentYear = parseInt(selectedMonth.split(' ')[1]);
 
-        if (parseInt(data.month) !== currentUIIndex || parseInt(data.year) !== currentYear) return;
+        if (parseInt(data.month) === currentUIIndex && parseInt(data.year) === currentYear) {
+          setAttendanceLogs((prevLogs) => {
+            // UPDATE: Agar naya status Present/Absent nahi hai, toh purani entry delete kar do
+            if (data.status !== "Present" && data.status !== "Absent") {
+                return prevLogs.filter(log => log.day !== parseInt(data.day));
+            }
 
-        setAttendanceLogs((prevLogs) => {
-          const existingIndex = prevLogs.findIndex(log => log.day === parseInt(data.day));
-          const updatedLogs = [...prevLogs];
-          if (existingIndex > -1) {
-            updatedLogs[existingIndex] = { ...updatedLogs[existingIndex], status: data.status };
-            return updatedLogs;
-          } else {
-            return [{ ...data, method: "Live Update" }, ...prevLogs].sort((a, b) => b.day - a.day);
-          }
-        });
+            const existingIndex = prevLogs.findIndex(log => log.day === parseInt(data.day));
+            if (existingIndex > -1) {
+              const updatedLogs = [...prevLogs];
+              updatedLogs[existingIndex] = { ...updatedLogs[existingIndex], status: data.status };
+              return updatedLogs;
+            } else {
+              return [{ ...data, method: "Live Update" }, ...prevLogs].sort((a, b) => b.day - a.day);
+            }
+          });
+        }
       });
     }
     return () => socket.off(`attendanceUpdate_${currentUniversityId}`);
   }, [selectedMonth]);
 
-  const presentCount = attendanceLogs.filter(l => l.status === "Present").length;
-  const absentCount = attendanceLogs.filter(l => l.status === "Absent").length;
-  const totalTracked = attendanceLogs.length;
-  const percentage = totalTracked > 0 ? ((presentCount / totalTracked) * 100).toFixed(1) : "0.0";
-  const totalLectures = 30;
-
-  const StatBox = ({ icon, value, label, subValue }) => (
-    <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 shadow-lg hover:border-slate-700 transition-all group">
-      <div className="mb-4 p-2 bg-slate-800/50 w-fit rounded-lg group-hover:bg-blue-500/10 transition-colors">
-        {icon}
-      </div>
-      <h3 className="text-3xl font-bold text-white leading-none tracking-tight">
-        {value}
-        {subValue && <span className="text-slate-500 text-lg font-normal"> {subValue}</span>}
-      </h3>
-      <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-3">{label}</p>
-    </div>
-  );
+  const stats = useMemo(() => {
+    const present = attendanceLogs.filter(l => l.status === "Present").length;
+    const absent = attendanceLogs.filter(l => l.status === "Absent").length;
+    const total = present + absent;
+    const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : "0.0";
+    
+    return {
+      present,
+      absent,
+      total,
+      percentage,
+      isGreen: parseFloat(percentage) >= 75
+    };
+  }, [attendanceLogs]);
 
   return (
     <div className="bg-[#0b1120] min-h-screen p-4 md:p-8 text-slate-200 font-sans">
       <div className="max-w-5xl mx-auto">
-
+        
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <div>
             <h1 className="text-3xl font-bold text-white tracking-tight">Attendance Dashboard</h1>
             <p className="text-slate-400 mt-1 flex items-center gap-2 text-sm font-medium">
-              <CalendarIcon size={16} className="text-blue-400" /> Real-time Academic Tracker
+              <Activity size={16} className={stats.isGreen ? "text-green-400" : "text-red-400"} /> 
+              Current Month Performance
             </p>
           </div>
 
@@ -126,28 +134,55 @@ const Attendance = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-[#1e293b] p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-800 shadow-lg">
-            <div className="relative w-16 h-16 mb-2">
+            <div className="relative w-24 h-24 mb-3">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <circle cx="18" cy="18" r="16" fill="none" className="stroke-slate-700" strokeWidth="3.5" />
-                <circle cx="18" cy="18" r="16" fill="none" className="stroke-blue-500" strokeWidth="3.5" strokeDasharray={`${percentage}, 100`} strokeLinecap="round" />
+                <circle cx="18" cy="18" r="16" fill="none" className="stroke-slate-700" strokeWidth="3" />
+                <circle 
+                  cx="18" cy="18" r="16" fill="none" 
+                  className={stats.isGreen ? "stroke-green-500" : "stroke-red-500"} 
+                  strokeWidth="3" 
+                  strokeDasharray={`${stats.percentage}, 100`} 
+                  strokeLinecap="round" 
+                  style={{ transition: 'stroke-dasharray 0.5s ease' }}
+                />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-white">{percentage}%</div>
+              <div className={`absolute inset-0 flex flex-col items-center justify-center font-black ${stats.isGreen ? 'text-green-400' : 'text-red-400'}`}>
+                <span className="text-xl">{stats.percentage}%</span>
+              </div>
             </div>
-            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest text-center">Attendance %</p>
+            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest text-center">Month Efficiency</p>
           </div>
 
-          <StatBox icon={<CheckCircle size={22} className="text-green-500" />} value={presentCount} label="Days Present" />
-          <StatBox icon={<XCircle size={22} className="text-red-500" />} value={absentCount} label="Days Absent" />
-          <StatBox icon={<Clock size={22} className="text-blue-400" />} value={totalTracked} subValue={`/ ${totalLectures}`} label="Lectures Tracked" />
+          <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 shadow-lg flex flex-col justify-center">
+             <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-500/10 rounded-xl text-green-500"><CheckCircle size={28}/></div>
+                <div>
+                   <h3 className="text-3xl font-bold text-white">{stats.present}</h3>
+                   <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Total Present</p>
+                </div>
+             </div>
+          </div>
+
+          <div className="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 shadow-lg flex flex-col justify-center">
+             <div className="flex items-center gap-4">
+                <div className="p-3 bg-red-500/10 rounded-xl text-red-500"><XCircle size={28}/></div>
+                <div>
+                   <h3 className="text-3xl font-bold text-white">{stats.absent}</h3>
+                   <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Total Absent</p>
+                </div>
+             </div>
+          </div>
         </div>
 
+        {/* Monthly Logs Table */}
         <div className="bg-[#1e293b] rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
           <div className="p-6 bg-[#243147]/50 border-b border-slate-800 flex justify-between items-center">
-            <h3 className="font-bold text-lg text-white">Monthly Logs</h3>
-            <div className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] text-blue-400 uppercase font-bold animate-pulse">
-              ● Live Updating
+            <h3 className="font-bold text-lg text-white">Attendance Logs for {selectedMonth.split(' ')[0]}</h3>
+            <div className="hidden md:block px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] text-blue-400 uppercase font-bold">
+               {stats.total} Records Tracked
             </div>
           </div>
 
@@ -169,6 +204,7 @@ const Attendance = () => {
                       </td>
                       <td className="px-8 py-4">
                         <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold ${log.status === 'Present' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${log.status === 'Present' ? 'bg-green-400' : 'bg-red-400'}`}></div>
                           {log.status}
                         </span>
                       </td>
@@ -178,7 +214,9 @@ const Attendance = () => {
                 </tbody>
               </table>
             ) : (
-              <div className="p-20 text-center text-slate-500">No records found.</div>
+              <div className="p-20 text-center text-slate-500 italic uppercase font-bold tracking-widest">
+                No active records found for this period.
+              </div>
             )}
           </div>
         </div>

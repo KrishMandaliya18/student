@@ -6,7 +6,10 @@ const assignmentSchema = new mongoose.Schema({
     fileName: { type: String, required: true }, // Original file name
     filePath: { type: String, required: true }, // Server par kahan save hai
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Admin ID
-    createdAt: { type: Date, default: Date.now }
-});
+    createdAt: { type: Date, default: Date.now },
+}, {
+    timestamps: true
+    }
+);
 
 module.exports = mongoose.model('Assignment', assignmentSchema);

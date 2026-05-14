@@ -1,21 +1,78 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { Zap, Clock, BookOpen, Bell, ArrowRight, CheckCircle, Download } from 'lucide-react';
+import axios from 'axios';
 
 const Dashboard = () => {
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
+    // GSAP Animation
     gsap.fromTo(".main-card", 
       { y: 30, opacity: 0 }, 
       { y: 0, opacity: 1, duration: 0.6, stagger: 0.15, ease: "power2.out" }
     );
+
+    // Fetch Attendance for Calculation
+    const fetchAttendance = async () => {
+      try {
+        const userData = JSON.parse(sessionStorage.getItem('userInfo'));
+        if (userData?.universityId) {
+          const res = await axios.get(`/api/attendance/${userData.universityId}`);
+          setAttendanceData(res.data.data);
+        }
+      } catch (err) {
+        console.error("Dashboard attendance fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAttendance();
   }, []);
+
+  // --- 4 Month Semester Calculation Logic ---
+  const semesterStats = useMemo(() => {
+    if (attendanceData.length === 0) return { percentage: 0, color: "text-slate-500", bg: "bg-slate-500" };
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Last 4 months filter
+    const last4Months = [];
+    for (let i = 0; i < 4; i++) {
+      let m = currentMonth - i;
+      let y = currentYear;
+      if (m < 0) { m += 12; y -= 1; }
+      last4Months.push({ month: m, year: y });
+    }
+
+    const filtered = attendanceData.filter(log => 
+      last4Months.some(m => m.month === log.month && m.year === log.year)
+    );
+
+    const present = filtered.filter(l => l.status === "Present").length;
+    const total = filtered.length;
+    const perc = total > 0 ? Math.round((present / total) * 100) : 0;
+
+    return {
+      percentage: perc,
+      // 75% logic for colors
+      color: perc >= 75 ? "text-emerald-500" : "text-rose-500",
+      bg: perc >= 75 ? "bg-emerald-600" : "bg-rose-600",
+      wave: perc >= 75 ? "bg-emerald-500/30" : "bg-rose-500/30",
+      status: perc >= 75 ? "On Track" : "Low Attendance"
+    };
+  }, [attendanceData]);
 
   return (
     <div className="space-y-8 lg:space-y-10 p-2">
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
+        {/* CGPA Card */}
         <div className="main-card lg:col-span-2 bg-gradient-to-br from-emerald-600 to-emerald-800 p-8 lg:p-10 rounded-[2.5rem] shadow-2xl shadow-emerald-900/20 relative overflow-hidden group border border-white/10">
           <div className="relative z-10">
             <h3 className="text-white/70 font-black tracking-widest uppercase text-[10px] mb-4 flex items-center gap-2">
@@ -37,21 +94,40 @@ const Dashboard = () => {
           <div className="absolute -top-10 -right-10 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
         </div>
 
+        {/* Dynamic Semester Attendance Card */}
         <div className="main-card bg-[#0a0f1c] p-8 rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center text-center shadow-2xl">
-          <h3 className="font-black text-slate-500 uppercase text-[10px] tracking-[0.3em] mb-6">Live Attendance</h3>
-          <div className="relative w-28 h-28 lg:w-32 lg:h-32 bg-slate-900 rounded-full overflow-hidden border-4 border-slate-800 shadow-2xl ring-8 ring-emerald-500/5">
+          <h3 className="font-black text-slate-500 uppercase text-[10px] tracking-[0.3em] mb-6">Semester Attendance</h3>
+          
+          <div className={`relative w-28 h-28 lg:w-32 lg:h-32 bg-slate-900 rounded-full overflow-hidden border-4 border-slate-800 shadow-2xl ring-8 ${semesterStats.percentage >= 75 ? 'ring-emerald-500/5' : 'ring-rose-500/5'}`}>
             <div className="absolute inset-0 flex items-center justify-center z-10">
-              <span className="text-xl lg:text-2xl font-black text-white">75%</span>
+              <span className="text-xl lg:text-2xl font-black text-white">{semesterStats.percentage}%</span>
             </div>
-            <motion.div initial={{ top: '100%' }} animate={{ top: '25%' }} transition={{ duration: 2 }} className="absolute inset-0 bg-emerald-500/30" />
-            <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} className="absolute top-[20%] left-[-50%] w-[200%] h-[200%] bg-emerald-600 rounded-[40%]" />
+            
+            {/* Liquid Animation - Height based on percentage */}
+            <motion.div 
+              initial={{ top: '100%' }} 
+              animate={{ top: `${100 - semesterStats.percentage}%` }} 
+              transition={{ duration: 2, ease: "easeOut" }} 
+              className={`absolute inset-0 ${semesterStats.wave}`} 
+            />
+            <motion.div 
+              animate={{ rotate: 360 }} 
+              transition={{ duration: 10, repeat: Infinity, ease: "linear" }} 
+              style={{ top: `${90 - semesterStats.percentage}%` }}
+              className={`absolute left-[-50%] w-[200%] h-[200%] ${semesterStats.bg} rounded-[40%] opacity-80`} 
+            />
           </div>
-          <p className="text-[10px] text-emerald-500 mt-6 font-black uppercase tracking-widest">On Track</p>
+
+          <p className={`text-[10px] ${semesterStats.color} mt-6 font-black uppercase tracking-widest`}>
+            {semesterStats.status}
+          </p>
+          <p className="text-[9px] text-slate-600 mt-1 uppercase font-bold tracking-tighter">(Based on Last 4 Months)</p>
         </div>
       </div>
 
+      {/* Rest of the Dashboard (Schedule, Tasks, Actions) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+        {/* Today's Schedule */}
         <div className="main-card bg-[#0a0f1c] p-8 rounded-[2.5rem] border border-white/5">
           <div className="flex justify-between items-center mb-6">
              <h3 className="font-black text-white uppercase text-xs tracking-widest flex items-center gap-2">
@@ -80,6 +156,7 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Pending Tasks */}
         <div className="main-card bg-[#0a0f1c] p-8 rounded-[2.5rem] border border-white/5">
           <h3 className="font-black text-white uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
             <BookOpen className="text-emerald-500" size={16} /> Pending Tasks
@@ -90,19 +167,20 @@ const Dashboard = () => {
                { task: "React UI Fixes", due: "5 days left", priority: "Medium" },
              ].map((item, i) => (
                <div key={i} className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-bold text-white">{item.task}</h4>
-                    <p className="text-[10px] text-rose-500 font-black uppercase mt-1">{item.due}</p>
-                  </div>
-                  <button className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
-                    <ArrowRight size={16} />
-                  </button>
+                 <div>
+                   <h4 className="text-sm font-bold text-white">{item.task}</h4>
+                   <p className="text-[10px] text-rose-500 font-black uppercase mt-1">{item.due}</p>
+                 </div>
+                 <button className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
+                   <ArrowRight size={16} />
+                 </button>
                </div>
              ))}
           </div>
         </div>
       </div>
 
+      {/* Quick Actions */}
       <div className="main-card bg-[#0a0f1c] p-6 rounded-[2rem] border border-white/5">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
            {[

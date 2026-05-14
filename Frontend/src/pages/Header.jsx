@@ -50,25 +50,32 @@ const Header = ({ setIsOpen }) => {
 
  const avatarUrl = `https://ui-avatars.com/api/?name=${studentName}&background=6366f1&color=fff&bold=true`;
 
-  const handleLogout = async () => {
-    try {
-      const storedInfo = sessionStorage.getItem("userInfo");
-      const token = sessionStorage.getItem("token");
-      
-      if (storedInfo && token) {
-        const userData = JSON.parse(storedInfo);
-        await axios.post("/api/auth/logout", 
-          { userId: userData.id || userData._id }, 
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+ const handleLogout = async () => {
+      try {
+          const storedInfo = sessionStorage.getItem("userInfo");
+          if (!storedInfo) {
+              window.location.href = "/login";
+              return;
+          }
+  
+          const userData = JSON.parse(storedInfo);
+          const token = sessionStorage.getItem("token");
+  
+         
+          await axios.post("/api/auth/logout", 
+              { userId: userData.id }, 
+              { headers: { Authorization: `Bearer ${token}` } }
+          );
+  
+          sessionStorage.clear();
+          window.location.href = "/login";
+      } catch (error) {
+          console.error("Logout failed", error);
+          sessionStorage.clear();
+          window.location.href = "/login";
       }
-    } catch (error) {
-      console.error("Logout failed", error);
-    } finally {
-      sessionStorage.clear();
-      window.location.href = "/login";
-    }
   };
+ 
 
   return (
     <header className="h-20 shrink-0 px-6 lg:px-10 flex items-center justify-between sticky top-0 bg-[#020617] z-50 border-b border-white/5">

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Save, Edit2, X, Trash2, Lock } from 'lucide-react';
 import axios from 'axios';
+// 1. Toastify Imports
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Settings = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -35,7 +38,7 @@ const Settings = () => {
         });
         setLoading(false);
       } catch (error) {
-        console.error("Profile load error", error);
+        toast.error("Failed to load profile", { theme: "dark" });
         setLoading(false);
       }
     };
@@ -66,16 +69,26 @@ const Settings = () => {
       sessionStorage.setItem('student_Name', data.name);
       
       window.dispatchEvent(new Event('profileUpdated'));
-      alert("Name updated successfully!");
+      
+      // 2. Success Toast
+      toast.success("Display name updated!", {
+        position: "top-right",
+        theme: "dark",
+        autoClose: 3000
+      });
+
       setIsEditing(false);
     } catch (error) {
-      alert(error.response?.data?.message || "Update failed");
+      // 3. Error Toast
+      toast.error(error.response?.data?.message || "Update failed", {
+        theme: "dark"
+      });
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
- 
+    // Reloading to reset any unsaved input changes
     window.location.reload(); 
   };
 
@@ -90,6 +103,8 @@ const Settings = () => {
          const userData = JSON.parse(storedInfo);
          const token = sessionStorage.getItem("token");
  
+         // 4. Logout Toast
+         toast.info("Logging out...", { theme: "dark", autoClose: 1000 });
         
          await axios.post("/api/auth/logout", 
              { userId: userData.id }, 
@@ -97,17 +112,22 @@ const Settings = () => {
          );
  
          sessionStorage.clear();
-         window.location.href = "/login";
+         setTimeout(() => {
+            window.location.href = "/login";
+         }, 1000);
      } catch (error) {
-         console.error("Logout failed", error);
          sessionStorage.clear();
          window.location.href = "/login";
      }
  };
-  if (loading) return <div className="text-white p-10 text-center">Loading Profile...</div>;
+
+  if (loading) return <div className="text-white p-10 text-center font-black animate-pulse">LOADING PROFILE...</div>;
 
   return (
     <div className="max-w-2xl space-y-8 p-6">
+      {/* 5. Toast Container */}
+      <ToastContainer pauseOnFocusLoss={false} pauseOnHover={false} />
+
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-3xl font-black text-white italic tracking-tight">PROFILE</h3>

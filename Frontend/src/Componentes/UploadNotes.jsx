@@ -1,18 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { UploadCloud, FileText, Trash2, PlusCircle, ClipboardList, Calendar, Eye } from 'lucide-react';
-import { gsap } from 'gsap';
 import axios from 'axios';
+// 1. Toastify Imports
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const UploadNotes = () => {
-  const [activeCategory, setActiveCategory] = useState('Assignments');
-  const fileInputRef = useRef(null);
-  
-  // State ko empty array se start karein
-const [materials, setMaterials] = useState([]);
-const [loading, setLoading] = useState(false);
+  const categories = [
+    { name: 'Assignments', icon: <ClipboardList size={18} /> },
+    { name: 'Time Table', icon: <Calendar size={18} /> },
+  ];
 
-const token = localStorage.getItem('token') || sessionStorage.getItem('token');
- useEffect(() => {
+  const [activeCategory, setActiveCategory] = useState('Assignments');
+  const [materials, setMaterials] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
   const fetchMaterials = async () => {
     try {
       const response = await axios.get('/api/assignments/all', {
@@ -23,52 +28,112 @@ const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       console.error("Error fetching materials", error);
     }
   };
-  fetchMaterials();
-}, [activeCategory]); // Category badalne par phir se fetch karein
 
-  const categories = [
-    { name: 'Assignments', icon: <ClipboardList size={18} /> },
-    { name: 'Time Table', icon: <Calendar size={18} /> },
-  ];
-const handleFileChange = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+  useEffect(() => {
+    fetchMaterials();
+  }, []);
 
-  const formData = new FormData();
-  formData.append('file', file); // 'file' wahi naam hai jo backend multer mein hai
-  formData.append('title', file.name); 
-  formData.append('subject', activeCategory); // Category ko subject ki tarah bhej rahe hain
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  try {
-    setLoading(true);
-    const response = await axios.post(
-      '/api/assignments/upload', 
-      formData,
-      {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', file.name); 
+    formData.append('subject', activeCategory);
+
+    try {
+      setLoading(true);
+      const response = await axios.post('/api/assignments/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${sessionStorage.getItem('token')}`
+          Authorization: `Bearer ${token}`
         }
+      });
+      
+      if(response.data.newAssignment) {
+          setMaterials([response.data.newAssignment, ...materials]);
+      } else {
+          fetchMaterials();
+      }
+      toast.success(`${file.name} uploaded successfully!`, {
+        position: "top-right",
+        autoClose: 3000,
+        theme: "dark",
+      });
+    } catch (error) {
+      toast.error("Upload failed!", {
+        position: "top-right",
+        theme: "dark",
+      });
+    } finally {
+      setLoading(false);
+      event.target.value = null;
+    }
+  };
+
+  // --- NEW: TOAST CONFIRMATION LOGIC ---
+  
+  // This shows the toast with buttons
+  const handleDeleteClick = (id) => {
+    toast.warn(
+      ({ closeToast }) => (
+        <div className="flex flex-col gap-3">
+          <p className="text-[11px] font-black uppercase tracking-widest text-white">
+            Confirm Delete?
+          </p>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => {
+                executeDelete(id);
+                closeToast();
+              }}
+              className="bg-rose-500 text-white px-4 py-1.5 rounded-lg text-[9px] font-black uppercase"
+            >
+              Yes, Delete
+            </button>
+            <button 
+              onClick={closeToast}
+              className="bg-slate-700 text-white px-4 py-1.5 rounded-lg text-[9px] font-black uppercase"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        position: "top-center",
+        autoClose: false, // Don't close automatically
+        closeOnClick: false,
+        draggable: false,
+        theme: "dark",
       }
     );
-    
-    // Upload ke baad list update karein
-    setMaterials([response.data.newAssignment, ...materials]);
-    alert("File Uploaded Successfully!");
-  } catch (error) {
-    alert("Upload failed!");
-    console.error(error);
-  } finally {
-    setLoading(false);
-    event.target.value = null;
-  }
-};
+  };
 
-  const filteredMaterials = materials.filter(m => m.type === activeCategory);
+  // This actually calls the API
+  const executeDelete = async (id) => {
+    try {
+      await axios.delete(`/api/assignments/delete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMaterials(materials.filter(m => m._id !== id));
+      toast.info("File deleted successfully", {
+        position: "top-right",
+        autoClose: 2000,
+        theme: "dark",
+      });
+    } catch (error) {
+      toast.error("Could not delete file.", { theme: "dark" });
+    }
+  };
+
+  const filteredMaterials = materials.filter(m => m.subject === activeCategory);
 
   return (
     <div className="h-full flex flex-col space-y-6 font-sans p-2 overflow-hidden">
-      
+      <ToastContainer />
+        
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase">
           Material <span className="text-emerald-500 text-3xl">Hub</span>
@@ -91,7 +156,6 @@ const handleFileChange = async (event) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
-        
         <div className="flex flex-col space-y-4">
           <input 
             type="file" 
@@ -101,13 +165,15 @@ const handleFileChange = async (event) => {
             accept=".pdf,.docx,.pptx,.jpg,.png"
           />
           <div 
-            onClick={() => fileInputRef.current.click()}
-            className="flex-1 bg-slate-900/40 border-2 border-dashed border-slate-800 rounded-[2.5rem] flex flex-col items-center justify-center hover:border-emerald-500/40 transition-all group cursor-pointer shadow-inner min-h-[300px]"
+            onClick={() => !loading && fileInputRef.current.click()}
+            className={`flex-1 bg-slate-900/40 border-2 border-dashed border-slate-800 rounded-[2.5rem] flex flex-col items-center justify-center hover:border-emerald-500/40 transition-all group cursor-pointer shadow-inner min-h-[300px] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <div className="w-24 h-24 bg-emerald-500/5 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border border-emerald-500/10">
-              <UploadCloud size={48} className="text-emerald-500/80" />
+              <UploadCloud size={48} className={loading ? "animate-bounce text-emerald-500" : "text-emerald-500/80"} />
             </div>
-            <h3 className="text-lg font-black text-white uppercase tracking-tighter">Click to Upload</h3>
+            <h3 className="text-lg font-black text-white uppercase tracking-tighter">
+              {loading ? 'Uploading...' : 'Click to Upload'}
+            </h3>
             <p className="text-slate-600 text-[10px] mt-2 font-bold uppercase tracking-widest leading-none">PDF, DOCX, PPT, JPG up to 50MB</p>
             <div className="mt-8 px-10 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-xs flex items-center gap-2 shadow-2xl transition-all active:scale-95">
               <PlusCircle size={16} /> ADD {activeCategory.toUpperCase()}
@@ -126,31 +192,32 @@ const handleFileChange = async (event) => {
           <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
             {filteredMaterials.length > 0 ? (
               <div className="grid gap-3">
-                {filteredMaterials.map((file, i) => (
-                  <div key={i} className="file-card flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.06] transition-all group border-l-2 border-l-transparent hover:border-l-emerald-500">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl">
+                {filteredMaterials.map((file) => (
+                  <div key={file._id} className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.06] transition-all group border-l-2 border-l-transparent hover:border-l-emerald-500">
+                    <div className="flex items-center gap-4 overflow-hidden">
+                      <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl shrink-0">
                         <FileText size={20} />
                       </div>
-                      <div className="max-w-[150px] md:max-w-[200px]">
-                        <p className="text-xs font-black text-white truncate leading-none mb-1">{file.name}</p>
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">{file.size} • {file.date}</p>
+                      <div className="truncate">
+                        <p className="text-xs font-black text-white truncate leading-none mb-1">{file.title || file.name}</p>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">
+                          {new Date(file.createdAt).toLocaleDateString()} • {new Date(file.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' , hour12: true})}
+                        </p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-1">
-                    <a 
-  href={`/${file.filePath}`} // Backend static folder ka path
-  target="_blank" 
-  rel="noopener noreferrer"
-  className="..."
->
-  <Eye size={18} />
-</a>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <a 
+                        href={`http://localhost:5000/${file.filePath}`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="p-2 text-slate-500 hover:text-emerald-500 transition-colors"
+                      >
+                        <Eye size={18} />
+                      </a>
                       <button 
-                        onClick={() => deleteFile(materials.indexOf(file))}
-                        className="p-2.5 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
-                        title="Delete File"
+                        onClick={() => handleDeleteClick(file._id)}
+                        className="p-2 text-slate-500 hover:text-rose-500 transition-colors"
                       >
                         <Trash2 size={18} />
                       </button>

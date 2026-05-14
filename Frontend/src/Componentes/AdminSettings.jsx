@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Save, Edit2, X, Trash2, Lock } from 'lucide-react';
 import axios from 'axios';
+// 1. Toastify Imports
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AdminSettings = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -13,81 +16,88 @@ const AdminSettings = () => {
     password: '' 
   });
 
-useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const storedData = sessionStorage.getItem('userInfo');
-      if (!storedData) {
-        console.error("No user info found");
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const storedData = sessionStorage.getItem('userInfo');
+        if (!storedData) {
+          setLoading(false);
+          return;
+        }
+
+        const userInfo = JSON.parse(storedData);
+        const config = {
+          headers: { Authorization: `Bearer ${userInfo.token}` }
+        };
+
+        const { data } = await axios.get('/api/auth/profile', config);
+        
+        setFormData({
+          name: data.name,
+          email: data.email,
+          universityId: data.universityId || '',
+          password: '' 
+        });
         setLoading(false);
-        return;
+      } catch (error) {
+        toast.error("Failed to load profile data");
+        setLoading(false);
       }
+    };
 
-      const userInfo = JSON.parse(storedData);
-      
-      const config = {
-        headers: { Authorization: `Bearer ${userInfo.token}` }
-      };
+    fetchProfile();
+  }, []);
 
-      const { data } = await axios.get('/api/auth/profile', config);
-      
-      setFormData({
-        name: data.name,
-        email: data.email,
-        universityId: data.universityId || '',
-        password: '' 
-      });
-      setLoading(false);
-    } catch (error) {
-      console.error("Profile load nahi ho payi", error);
-      setLoading(false);
-    }
-  };
-
-  fetchProfile();
-}, []);
- 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSave = async () => {
-  try {
-    const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${userInfo.token}`
-      }
-    };
+    try {
+      const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userInfo.token}`
+        }
+      };
 
-    const { data } = await axios.put('/api/auth/profile/update', formData, config);         
-    
-    const updatedInfo = { ...userInfo, name: data.name, email: data.email };
-    sessionStorage.setItem('userInfo', JSON.stringify(updatedInfo));
-    
-    window.dispatchEvent(new Event('profileUpdated'));
+      const { data } = await axios.put('/api/auth/profile/update', formData, config);         
+      
+      const updatedInfo = { ...userInfo, name: data.name, email: data.email };
+      sessionStorage.setItem('userInfo', JSON.stringify(updatedInfo));
+      
+      window.dispatchEvent(new Event('profileUpdated'));
 
-    alert("Profile Successfully Updated!");
-    setIsEditing(false);
-    
-    setFormData({
-      ...formData,
-      name: data.name,
-      email: data.email,
-      password: '' 
-    });
+      // 2. Success Toast
+      toast.success("Profile Updated Successfully!", {
+        theme: "dark",
+        position: "top-right"
+      });
 
-  } catch (error) {
-    alert(error.response?.data?.message || "Update fail ho gaya");
-  }
-};
+      setIsEditing(false);
+      setFormData({
+        ...formData,
+        name: data.name,
+        email: data.email,
+        password: '' 
+      });
+
+    } catch (error) {
+      // 3. Error Toast
+      toast.error(error.response?.data?.message || "Update failed", {
+        theme: "dark"
+      });
+    }
+  };
 
   const handleCancel = () => {
     setIsEditing(false);
-    window.location.reload(); 
+    // Instead of reload, we just reset editing state. 
+    // You could also re-fetch data here if needed.
   };
- const handleLogout = async () => {
+
+  const handleLogout = async () => {
     try {
         const storedInfo = sessionStorage.getItem("userInfo");
         if (!storedInfo) {
@@ -98,28 +108,34 @@ useEffect(() => {
         const userData = JSON.parse(storedInfo);
         const token = sessionStorage.getItem("token");
 
-    
+        // 4. Info Toast for Logout
+        toast.info("Logging out...", { theme: "dark", autoClose: 1000 });
+
         await axios.post("/api/auth/logout", 
             { userId: userData.id }, 
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
         sessionStorage.clear();
-        window.location.href = "/login";
+        setTimeout(() => {
+            window.location.href = "/login";
+        }, 1000);
     } catch (error) {
-        console.error("Logout failed", error);
         sessionStorage.clear();
         window.location.href = "/login";
     }
-};
+  };
 
-  if (loading) return <div className="text-white p-10 text-center">Loading Profile...</div>;
+  if (loading) return <div className="text-white p-10 text-center font-bold tracking-widest animate-pulse">LOADING PROFILE...</div>;
 
   return (
     <div className="max-w-2xl space-y-8 p-6">
+      {/* 5. Toast Container */}
+      <ToastContainer pauseOnFocusLoss={false} pauseOnHover={false} />
+
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-3xl font-black text-white italic tracking-tight">PROFILE</h3>
+          <h3 className="text-3xl font-black text-white italic tracking-tight uppercase">Profile</h3>
           <p className="text-slate-500 text-sm">View and manage your faculty profile</p>
         </div>
         

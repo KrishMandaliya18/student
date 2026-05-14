@@ -46,9 +46,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 };
   const navItems = [
     { path: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20}/> },
-    { path: 'assignments', label: 'Assignments', icon: <ClipboardList size={20}/> },
     { path: 'attendance', label: 'Attendance', icon: <CheckCircle size={20}/> },
-    { path: 'exams', label: 'Exams', icon: <FileText size={20}/> },
+    { path: 'assignments', label: 'Assignments', icon: <ClipboardList size={20}/> },
+    // { path: 'exams', label: 'Exams', icon: <FileText size={20}/> },
     { path: 'fees', label: 'Fees', icon: <IndianRupee size={20}/> },
     { path: 'notice', label: 'Notice Board', icon: <Megaphone size={20}/> },
     { path: 'settings', label: 'Settings', icon: <Settings size={20}/> },
@@ -97,7 +97,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           ))}
         </nav>
         
-        <div className="pt-6 border-t border-white/5">
+        {/* <div className="pt-6 border-t border-white/5">
           <button 
             onClick={handleLogout}
             className="flex items-center gap-3 px-5 py-3.5 w-full text-rose-400 hover:bg-rose-500/10 rounded-2xl transition-all font-bold group"
@@ -105,7 +105,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span>Logout</span>
           </button>
-        </div>
+        </div> */}
       </aside>
     </>
   );
